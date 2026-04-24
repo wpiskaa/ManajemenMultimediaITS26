@@ -40,6 +40,8 @@ function init() {
   setupNavbar();
   setupHeroTyping();
   setupParticles();
+  setupProfileSync();
+  setupQuoteRotator();
 }
 
 function initRealtime() {
@@ -66,18 +68,6 @@ function initRealtime() {
   onSnapshot(collection(db, "notes"), snap => {
     notes = snap.docs.map(d => ({id: d.id, ...d.data()}));
     renderNotes();
-  });
-  
-  // Settings Listener
-  onSnapshot(collection(db, "settings"), snap => {
-    const s = snap.docs.find(d => d.id === 'piska');
-    if(s) {
-      const data = s.data();
-      const pPhoto = document.getElementById('userProfilePhoto');
-      const pStatus = document.getElementById('userStatusText');
-      if(pPhoto && data.photoURL) pPhoto.src = data.photoURL;
-      if(pStatus && data.status) pStatus.textContent = data.status;
-    }
   });
 }
 
@@ -623,3 +613,41 @@ window.showAnnDetail = function(id) {
   
   if(modal) modal.classList.add('open');
 };
+
+/* ─── PROFILE SYNC ─── */
+function setupProfileSync() {
+  onSnapshot(collection(db, "settings"), (snap) => {
+    if (!snap.empty) {
+      const data = snap.docs[0].data();
+      const photoEl = document.getElementById('userProfilePhoto');
+      const statusEl = document.getElementById('userStatusText');
+      if (photoEl && data.profilePhoto) photoEl.src = data.profilePhoto;
+      if (statusEl && data.statusMessage) statusEl.textContent = data.statusMessage;
+    }
+  });
+}
+
+/* ─── QUOTE ROTATOR ─── */
+function setupQuoteRotator() {
+  const quotes = [
+    '"The best way to predict the future is to create it."',
+    '"Creativity is intelligence having fun."',
+    '"Simplicity is the ultimate sophistication."',
+    '"Innovation distinguishes between a leader and a follower."'
+  ];
+  let qIdx = 0;
+  setInterval(() => {
+    const qEl = document.getElementById('piskaQuote');
+    if(qEl) {
+      qEl.classList.add('hiding');
+      setTimeout(() => {
+        qIdx = (qIdx + 1) % quotes.length;
+        qEl.textContent = quotes[qIdx];
+        qEl.classList.remove('hiding');
+      }, 800);
+    }
+  }, 6000);
+}
+
+init();
+
