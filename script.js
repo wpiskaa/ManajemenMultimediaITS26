@@ -564,6 +564,7 @@ window.toggleSSMode = function() {
   const modal = document.querySelector('.modal-content');
   const overlay = document.getElementById('taskModal');
   const body = document.querySelector('.modal-body');
+  if(!modal || !overlay) return;
   
   if (modal.classList.contains('ss-mode')) {
     modal.classList.remove('ss-mode');
@@ -577,26 +578,36 @@ window.toggleSSMode = function() {
 window.showAnnDetail = function(id) {
   const a = announcements.find(x=>x.id===id);
   if(!a) return;
-  window.currentViewedEventId = id; // Store for SS Mode
   
   const d = new Date(a.date+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-  
-  document.getElementById('m-title').textContent = a.title;
-  document.getElementById('m-header-extra').innerHTML = `<div style="font-size:14px; color:var(--text2); display:flex; justify-content:center; flex-wrap:wrap; gap:15px; margin-bottom:15px;">
+  const titleEl = document.getElementById('m-title');
+  const extraEl = document.getElementById('m-header-extra');
+  const descEl = document.getElementById('m-desc');
+  const dateLabelEl = document.getElementById('m-date-label');
+  const dueEl = document.getElementById('m-due');
+  const modal = document.getElementById('taskModal');
+
+  if(titleEl) titleEl.textContent = a.title;
+  if(extraEl) extraEl.innerHTML = `<div style="font-size:14px; color:var(--text2); display:flex; justify-content:center; flex-wrap:wrap; gap:15px; margin-bottom:15px;">
     <span><span style="color:var(--purple-l)">📅</span> ${d}</span>
     ${a.time ? `<span><span style="color:var(--cyan-l)">🕒</span> ${a.time}</span>` : ''}
     ${a.location ? `<span><span style="color:var(--pink-l)">📍</span> ${a.location}</span>` : ''}
   </div>`;
   
-  document.getElementById('m-desc').textContent = a.content;
-  document.getElementById('m-date-label').textContent = 'Informasi Tanggal';
-  document.getElementById('m-due').textContent = d + (a.time ? ' pukul ' + a.time : '');
+  if(descEl) descEl.textContent = a.content;
+  if(dateLabelEl) dateLabelEl.textContent = 'Informasi Tanggal';
+  if(dueEl) dueEl.textContent = d + (a.time ? ' pukul ' + a.time : '');
   
   // Reset visibility
-  document.getElementById('m-meta-wrap').style.display = 'none';
-  document.getElementById('m-event-section').style.display = 'none';
-  document.getElementById('m-plotting-list').style.display = 'none';
-  document.getElementById('m-assignees-section').style.display = 'none';
+  const metaWrap = document.getElementById('m-meta-wrap');
+  const eventSec = document.getElementById('m-event-section');
+  const plotList = document.getElementById('m-plotting-list');
+  const assSec = document.getElementById('m-assignees-section');
+
+  if(metaWrap) metaWrap.style.display = 'none';
+  if(eventSec) eventSec.style.display = 'none';
+  if(plotList) plotList.style.display = 'none';
+  if(assSec) assSec.style.display = 'none';
   
-  document.getElementById('taskModal').classList.add('open');
+  if(modal) modal.classList.add('open');
 };
