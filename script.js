@@ -297,6 +297,12 @@ window.showTaskDetail = function(id) {
   document.getElementById('m-title').textContent = t.title;
   document.getElementById('m-header-extra').innerHTML = '';
   
+  // Reset visibility
+  document.getElementById('m-meta-wrap').style.display = 'flex';
+  document.getElementById('m-event-section').style.display = 'block';
+  document.getElementById('m-plotting-list').style.display = 'none';
+  document.getElementById('m-assignees-section').style.display = 'block';
+
   const mSub = document.getElementById('m-subdiv');
   const tSubdivs = t.subdivs || (t.subdiv ? [t.subdiv] : []);
   mSub.innerHTML = tSubdivs.map(s => {
@@ -351,8 +357,10 @@ window.showEventDetail = function(id) {
   document.getElementById('m-date-label').textContent = 'Pelaksanaan';
   document.getElementById('m-due').textContent = `${e.date} (${e.time || 'Waktu TBA'})`;
   
+  // Reset visibility
   document.getElementById('m-meta-wrap').style.display = 'none';
   document.getElementById('m-event-section').style.display = 'none';
+  document.getElementById('m-assignees-section').style.display = 'none';
   
   const eventTasks = tasks.filter(t => t.eventId === e.id);
   const plotList = document.getElementById('m-plotting-list');
@@ -433,8 +441,11 @@ function renderAnnouncements() {
   list.innerHTML = sorted.map(a => {
     const isHigh = a.priority==='high';
     const d = new Date(a.date+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    const timeInfo = a.time ? `<span style="margin-left:12px;">🕒 ${a.time}</span>` : '';
+    const locInfo = a.location ? `<div class="ann-loc" style="font-size:12px; color:var(--text3); margin-top:4px;">📍 ${a.location}</div>` : '';
+    
     return `
-    <div class="ann-card animate-on-scroll">
+    <div class="ann-card animate-on-scroll" onclick="showAnnDetail('${a.id}')">
       <div class="ann-icon ${a.priority}">
         ${isHigh
           ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
@@ -443,8 +454,9 @@ function renderAnnouncements() {
       </div>
       <div class="ann-content">
         <h3 class="ann-title">${a.title}</h3>
-        <p class="ann-text">${a.content}</p>
-        <div class="ann-date">📅 ${d}</div>
+        <p class="ann-text">${a.content.substring(0,100)}${a.content.length>100?'...':''}</p>
+        <div class="ann-date">📅 ${d} ${timeInfo}</div>
+        ${locInfo}
       </div>
       <span class="priority-badge priority-${a.priority}">${isHigh?'Penting':'Info'}</span>
     </div>`;
@@ -537,4 +549,30 @@ window.toggleSSMode = function() {
     overlay.style.background = '#000'; // Solid black for contrast
     body.scrollTop = 0;
   }
+};
+window.showAnnDetail = function(id) {
+  const a = announcements.find(x=>x.id===id);
+  if(!a) return;
+  window.currentViewedEventId = id; // Store for SS Mode
+  
+  const d = new Date(a.date+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  
+  document.getElementById('m-title').textContent = a.title;
+  document.getElementById('m-header-extra').innerHTML = `<div style="font-size:14px; color:var(--text2); display:flex; justify-content:center; flex-wrap:wrap; gap:15px; margin-bottom:15px;">
+    <span><span style="color:var(--purple-l)">📅</span> ${d}</span>
+    ${a.time ? `<span><span style="color:var(--cyan-l)">🕒</span> ${a.time}</span>` : ''}
+    ${a.location ? `<span><span style="color:var(--pink-l)">📍</span> ${a.location}</span>` : ''}
+  </div>`;
+  
+  document.getElementById('m-desc').textContent = a.content;
+  document.getElementById('m-date-label').textContent = 'Informasi Tanggal';
+  document.getElementById('m-due').textContent = d + (a.time ? ' pukul ' + a.time : '');
+  
+  // Reset visibility
+  document.getElementById('m-meta-wrap').style.display = 'none';
+  document.getElementById('m-event-section').style.display = 'none';
+  document.getElementById('m-plotting-list').style.display = 'none';
+  document.getElementById('m-assignees-section').style.display = 'none';
+  
+  document.getElementById('taskModal').classList.add('open');
 };

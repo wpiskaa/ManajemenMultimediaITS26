@@ -311,8 +311,14 @@ function buildForm(type,editId) {
     const a=editId?announcements.find(x=>x.id===editId):{};
     return `<div class="form-group"><label class="form-label">Judul *</label><input class="form-input" id="f-title" value="${a.title||''}"></div>
       <div class="form-group"><label class="form-label">Isi Pengumuman *</label><textarea class="form-textarea" style="min-height:120px" id="f-content">${a.content||''}</textarea></div>
-      <div class="form-row"><div class="form-group"><label class="form-label">Tanggal</label><input type="date" class="form-input" id="f-date" value="${a.date||new Date().toISOString().slice(0,10)}"></div>
-      <div class="form-group"><label class="form-label">Prioritas</label><select class="form-select" id="f-priority"><option value="normal"${(a.priority||'normal')==='normal'?' selected':''}>Normal</option><option value="high"${(a.priority||'')==='high'?' selected':''}>Penting/Urgent</option></select></div></div>`;
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Tanggal</label><input type="date" class="form-input" id="f-date" value="${a.date||new Date().toISOString().slice(0,10)}"></div>
+        <div class="form-group"><label class="form-label">Waktu</label><input type="time" class="form-input" id="f-time" value="${a.time||''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Lokasi</label><input class="form-input" id="f-location" value="${a.location||''}"></div>
+        <div class="form-group"><label class="form-label">Prioritas</label><select class="form-select" id="f-priority"><option value="normal"${(a.priority||'normal')==='normal'?' selected':''}>Normal</option><option value="high"${(a.priority||'')==='high'?' selected':''}>Penting/Urgent</option></select></div>
+      </div>`;
   }
   if(type==='note') {
     const n=editId?notes.find(x=>x.id===editId):{};
@@ -345,7 +351,7 @@ async function saveModal(type, editId) {
     item={name:g('f-name'),roles:selectedRoles};
   } else if(type==='announcement') {
     if(!g('f-title')||!g('f-content')){alert('Judul dan isi wajib diisi!');return;}
-    item={title:g('f-title'),content:g('f-content'),date:g('f-date'),priority:g('f-priority')};
+    item={title:g('f-title'),content:g('f-content'),date:g('f-date'),time:g('f-time'),location:g('f-location'),priority:g('f-priority')};
   } else if(type==='note') {
     if(!g('f-title')||!g('f-content')){alert('Judul dan isi wajib diisi!');return;}
     item={title:g('f-title'),content:g('f-content'),date:g('f-date'),topic:g('f-topic')};
