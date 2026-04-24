@@ -172,11 +172,31 @@
     #drag-ghost { position: fixed; pointer-events: none; z-index: 5000; display: none; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6)); transition: transform 0.1s; }
 
     @media (max-width: 900px) {
-      .game-layout { flex-direction: column; align-items: center; gap: 20px; }
-      .lobby-content { flex-direction: column; height: 100%; padding: 80px 0; overflow-y: auto; }
-      .lobby-form { padding: 40px 30px; border-radius: 0; }
-      .leaderboard-panel { width: 100%; border-radius: 0; }
-      .game-section { padding-top: 80px; }
+      .game-layout { flex-direction: column; align-items: center; gap: 24px; padding: 0 10px; }
+      .game-board-container { max-width: 100%; }
+      .grid { gap: 6px; padding: 12px; border-radius: 20px; }
+      .cell { border-radius: 6px; }
+      .pieces-container { height: 90px; gap: 10px; }
+      .piece-box { width: 85px; height: 85px; border-radius: 18px; }
+      
+      .lobby-content { flex-direction: column; height: auto; padding: 40px 16px; gap: 24px; width: 100%; overflow-y: visible; }
+      .lobby-form { padding: 32px 24px; border-radius: 24px; width: 100%; flex: none; }
+      .lobby-form h2 { font-size: 28px !important; }
+      .leaderboard-panel { width: 100%; border-radius: 24px; padding: 24px; flex: none; }
+      
+      .game-section { padding-top: 80px; height: auto; min-height: 100vh; overflow-y: auto; }
+      
+      #feverAlert { font-size: 60px; }
+      
+      .game-over-content { padding: 32px 24px !important; width: 90% !important; border-radius: 24px !important; }
+      .game-over-content h2 { font-size: 32px !important; }
+      .game-over-content #finalScoreVal { font-size: 56px !important; }
+    }
+    
+    .game-over-content {
+      max-width: 440px; padding: 50px; background: #080812; border: 1px solid var(--glass-border);
+      border-radius: 40px; text-align: center; box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+      display: flex; flex-direction: column; justify-content: center; backdrop-filter: blur(40px);
     }
   </style>
 </head>
@@ -259,8 +279,8 @@
 
 <div id="drag-ghost"></div>
 
-<div class="game-over" id="gameOverModal" style="position:fixed; inset:0; background:rgba(3,3,8,0.98); z-index:5000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(40px);">
-  <div class="lobby-form" style="max-width: 440px; padding: 50px;">
+<div class="game-over" id="gameOverModal" style="position:fixed; inset:0; background:rgba(3,3,8,0.96); z-index:5000; display:none; align-items:center; justify-content:center; backdrop-filter:blur(40px); padding: 20px;">
+  <div class="game-over-content">
     <h2 style="color:var(--pink-l); font-size:48px; font-weight:900; letter-spacing:-2px; margin: 0;">Game Over</h2>
     <div id="finalRank" style="font-size:22px; font-weight: 800; color:var(--purple-l); margin: 10px 0 30px;">LEGEND</div>
     
