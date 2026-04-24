@@ -141,6 +141,30 @@ function renderEvents() {
         month = d.toLocaleDateString('id-ID', {month:'short'}).toUpperCase();
       }
     } catch(err) {}
+
+    // Ambil tugas yang terhubung dengan event ini (Plotting)
+    const eventTasks = tasks.filter(t => t.eventId === e.id);
+    let plottingHtml = '';
+    
+    if(eventTasks.length > 0) {
+      plottingHtml = `<div class="event-plotting">
+        <div class="plotting-title">Plotting Tim:</div>
+        <div class="plotting-list">
+          ${eventTasks.map(t => {
+            const assignedNames = (t.assignedTo || []).map(id => {
+              const m = members.find(x => x.id === id);
+              return m ? m.name : 'Unknown';
+            }).join(', ');
+            const sub = (t.subdivs || (t.subdiv ? [t.subdiv] : [])).join(' & ');
+            return `<div class="plotting-item">
+              <span class="p-sub" style="color:${SUBDIV_COLORS[t.subdivs?.[0]] || '#7c3aed'}">${sub}:</span> 
+              <span class="p-names">${assignedNames || 'Belum diplot'}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
     return `
     <div class="event-card animate-on-scroll" style="--i:${i}">
       <div class="event-date-badge">
@@ -159,6 +183,7 @@ function renderEvents() {
           ${e.location || 'Lokasi TBA'}
         </div>
       </div>
+      ${plottingHtml}
     </div>`;
   }).join('');
   observeAnimations();

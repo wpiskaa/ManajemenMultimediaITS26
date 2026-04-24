@@ -467,6 +467,20 @@ footer strong { color:var(--purple-l); }
 .modal-section h3 { font-size:13px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
 .modal-section p { font-size:15px; color:var(--text2); line-height:1.7; }
 
+/* EVENT PLOTTING */
+.event-plotting {
+  margin-top: 18px; padding-top: 15px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.plotting-title {
+  font-size: 11px; font-weight: 800; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+}
+.plotting-list { display: flex; flex-direction: column; gap: 6px; }
+.plotting-item { font-size: 13px; line-height: 1.4; color: var(--text2); }
+.p-sub { font-weight: 700; margin-right: 4px; text-transform: capitalize; }
+.p-names { color: var(--text); }
+
 /* ── RESPONSIVE ── */
 @media(max-width:768px) {
   .nav-links, .nav-actions { display:none; }
