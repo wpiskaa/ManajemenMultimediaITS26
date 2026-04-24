@@ -452,16 +452,30 @@ ul { list-style:none; }
 .m-info h4 { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 4px; }
 .m-info p { font-size: 13px; color: var(--text2); line-height: 1.5; }
 
-/* Project Cards */
-.creations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
-.creation-card {
-  background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 40px 32px;
-  text-align: center; transition: var(--t); cursor: pointer;
+/* Work Cards with Images */
+.work-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px; }
+.work-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 28px; overflow: hidden;
+  transition: var(--t); cursor: pointer; position: relative;
 }
-.creation-card:hover { border-color: var(--purple); background: rgba(124,58,237,0.05); transform: translateY(-10px); }
-.c-icon { font-size: 48px; margin-bottom: 20px; display: block; }
-.c-title { font-size: 20px; font-weight: 800; margin-bottom: 12px; }
-.c-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.work-card:hover { border-color: var(--purple-l); transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+.work-img { width: 100%; aspect-ratio: 16/10; overflow: hidden; position: relative; }
+.work-img img { width: 100%; height: 100%; object-fit: cover; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+.work-card:hover .work-img img { transform: scale(1.1); }
+.work-overlay {
+  position: absolute; inset: 0; background: linear-gradient(0deg, rgba(3,3,11,0.9) 0%, transparent 100%);
+  display: flex; align-items: flex-end; padding: 24px;
+}
+.work-content { padding: 32px; }
+.work-tag {
+  display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+}
+.work-title { font-size: 20px; font-weight: 800; margin-bottom: 10px; color: #fff; }
+.work-desc { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+.work-link { color: var(--purple-l); font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.work-link svg { transition: 0.3s; }
+.work-card:hover .work-link svg { transform: translateX(5px); }
 
 @media(max-width: 900px) {
   .personal-grid { grid-template-columns: 1fr; }
