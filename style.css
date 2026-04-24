@@ -491,11 +491,31 @@ footer strong { color:var(--purple-l); }
 @media(max-width:768px) {
   .nav-links, .nav-actions { display:none; }
   .nav-hamburger { display:flex; }
-  .hero-stats { grid-template-columns:repeat(2,1fr); }
-  .subdiv-overview { grid-template-columns:repeat(2,1fr); }
+  .hero-stats { grid-template-columns:repeat(2,1fr); gap:12px; }
+  .subdiv-overview { grid-template-columns:repeat(2,1fr); gap:12px; }
   .section { padding:60px 16px; }
+  .section-title { font-size: 28px; }
+  .ann-card { flex-direction: column; gap: 12px; }
+  .ann-icon { width: 40px; height: 40px; }
+  .modal-content { border-radius: 0; height: 100%; max-height: 100vh; }
+  .modal-body { padding: 24px; }
 }
+
 @media(max-width:480px) {
-  .hero-stats { grid-template-columns:1fr 1fr; }
-  .hero-title { font-size:36px; }
+  .hero-stats { grid-template-columns: 1fr 1fr; }
+  .hero-title { font-size:32px; }
+  .subdiv-overview { grid-template-columns: 1fr; }
+  .team-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .member-card { padding: 16px 12px; }
+  .member-avatar { width: 56px; height: 56px; }
+  .member-name { font-size: 14px; }
+  .game-preview-card { padding: 30px 20px !important; }
+  .game-icon { font-size: 40px !important; }
+  .game-preview-card h3 { font-size: 20px !important; }
+}
+
+/* TABLE SCROLL HELPER */
+.table-wrapper {
+  width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border-radius: 12px; border: 1px solid var(--border);
 }

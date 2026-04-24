@@ -175,8 +175,8 @@ a { text-decoration:none; color:inherit; }
 .btn-add:hover { opacity:.85; transform:translateY(-1px); }
 
 /* ── DATA TABLE ── */
-.data-table-wrap { background:var(--card); border:1px solid var(--border); border-radius:var(--r); overflow-x:auto; }
-.data-table { width:100%; border-collapse:collapse; min-width:600px; }
+.data-table-wrap { width: 100%; border-radius: var(--r); border: 1px solid var(--border); overflow: hidden; background: var(--bg2); }
+.data-table { width:100%; border-collapse:collapse; text-align:left; }
 .data-table th {
   text-align:left; padding:12px 16px; font-size:11px; font-weight:700;
   text-transform:uppercase; letter-spacing:.5px; color:var(--text3);
@@ -312,7 +312,7 @@ a { text-decoration:none; color:inherit; }
   .sidebar-link span { display:inline-block; }
   
   .admin-main { overflow:visible; }
-  .admin-topbar { padding:12px 16px; }
+  .admin-topbar { padding:12px 16px; position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); }
   .topbar-title h1 { font-size:16px; }
   .topbar-title p { font-size:11px; }
   
@@ -326,10 +326,14 @@ a { text-decoration:none; color:inherit; }
   .btn-add { width:100%; justify-content:center; }
   
   .data-table td, .data-table th { padding:10px 12px; font-size:12px; }
+  .data-table-wrap { 
+    margin: 0 -16px; padding: 0 16px; width: calc(100% + 32px); 
+    overflow-x: auto; -webkit-overflow-scrolling: touch; 
+  }
   
-  .modal-box { border-radius:16px; }
+  .modal-box { border-radius:0; width: 100%; height: 100%; max-height: 100vh; }
   .modal-header { padding:16px 20px; }
-  .modal-body { padding:16px 20px; gap:12px; }
+  .modal-body { padding:16px 20px; gap:12px; overflow-y: auto; }
   .form-row { grid-template-columns:1fr; gap:12px; }
 }
 
@@ -337,4 +341,6 @@ a { text-decoration:none; color:inherit; }
   .admin-stats { grid-template-columns:1fr; }
   .sidebar-header { padding:10px; }
   .sidebar-logo { width:32px; height:32px; }
+  .login-card { padding: 32px 24px; }
+  .login-title { font-size: 22px; }
 }
