@@ -286,14 +286,55 @@ a { text-decoration:none; color:inherit; }
 .toast.show { transform:translateY(0); opacity:1; }
 
 /* ── RESPONSIVE ── */
-@media(max-width:900px) {
+@media(max-width:1024px) {
   .admin-sidebar { width:220px; }
   .admin-stats { grid-template-columns:repeat(2,1fr); }
 }
-@media(max-width:650px) {
-  .admin-app { flex-direction:column; }
-  .admin-sidebar { width:100%; height:auto; position:relative; flex-direction:row; flex-wrap:wrap; }
-  .sidebar-nav { display:flex; flex-wrap:wrap; gap:4px; padding:8px; }
-  .admin-stats { grid-template-columns:1fr 1fr; }
-  .form-row { grid-template-columns:1fr; }
+
+@media(max-width:768px) {
+  .admin-app.visible { flex-direction:column; }
+  .admin-sidebar { 
+    width:100%; height:auto; position:sticky; top:0; z-index:1001;
+    border-right:none; border-bottom:1px solid var(--border);
+    flex-direction:row; overflow-y:visible; overflow-x:auto;
+  }
+  .sidebar-header { padding:12px 16px; border-bottom:none; flex-shrink:0; }
+  .sidebar-brand-name, .sidebar-brand-sub, .sidebar-section, .sidebar-footer { display:none; }
+  .sidebar-nav { 
+    display:flex; flex-direction:row; padding:8px; gap:4px; 
+    overflow-x:auto; scrollbar-width:none; 
+  }
+  .sidebar-nav::-webkit-scrollbar { display:none; }
+  .sidebar-link { 
+    white-space:nowrap; padding:8px 14px; width:auto; 
+    font-size:12px; gap:6px;
+  }
+  .sidebar-link span { display:inline-block; }
+  
+  .admin-main { overflow:visible; }
+  .admin-topbar { padding:12px 16px; }
+  .topbar-title h1 { font-size:16px; }
+  .topbar-title p { font-size:11px; }
+  
+  .admin-content { padding:16px; }
+  .admin-stats { grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+  .admin-stat-card { padding:12px; gap:10px; }
+  .asc-num { font-size:20px; }
+  .asc-label { font-size:10px; }
+  
+  .table-toolbar { flex-direction:column; align-items:flex-start; gap:10px; }
+  .btn-add { width:100%; justify-content:center; }
+  
+  .data-table td, .data-table th { padding:10px 12px; font-size:12px; }
+  
+  .modal-box { border-radius:16px; }
+  .modal-header { padding:16px 20px; }
+  .modal-body { padding:16px 20px; gap:12px; }
+  .form-row { grid-template-columns:1fr; gap:12px; }
+}
+
+@media(max-width:480px) {
+  .admin-stats { grid-template-columns:1fr; }
+  .sidebar-header { padding:10px; }
+  .sidebar-logo { width:32px; height:32px; }
 }
