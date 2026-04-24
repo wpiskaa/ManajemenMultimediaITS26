@@ -122,15 +122,31 @@ function updateStats() {
 }
 
 /* ─── RENDER EVENTS ─── */
+let currentEventFilter = 'all';
+window.filterEvents = function(filter, btn) {
+  currentEventFilter = filter;
+  document.querySelectorAll('#eventFilter .filter-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderEvents();
+};
+
 function renderEvents() {
   const grid = document.getElementById('scheduleGrid');
   if (!grid) return;
-  if (!events.length) {
-    grid.innerHTML = '<div class="no-data"><p>Belum ada data event di database.</p></div>';
+  
+  const today = new Date().toISOString().slice(0,10);
+  let filtered = [...events];
+  
+  if(currentEventFilter === 'upcoming') filtered = events.filter(e => e.date > today);
+  else if(currentEventFilter === 'today') filtered = events.filter(e => e.date === today);
+  else if(currentEventFilter === 'past') filtered = events.filter(e => e.date < today);
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="no-data"><p>Tidak ada event untuk kategori "${currentEventFilter}".</p></div>`;
     return;
   }
-  // Tampilkan semua event untuk pengecekan awal, urutkan dari yang terbaru
-  const sorted = [...events].sort((a,b)=>b.date.localeCompare(a.date));
+  
+  const sorted = filtered.sort((a,b)=>b.date.localeCompare(a.date));
   
   grid.innerHTML = sorted.map((e, i) => {
     let day = '??', month = '???';
@@ -142,7 +158,6 @@ function renderEvents() {
       }
     } catch(err) {}
 
-    // Ambil tugas yang terhubung dengan event ini (Plotting)
     const eventTasks = tasks.filter(t => t.eventId === e.id);
     let plottingHtml = '';
     
@@ -154,7 +169,7 @@ function renderEvents() {
             const assignedNames = (t.assignedTo || []).map(id => {
               const m = members.find(x => x.id === id);
               return m ? m.name : 'Unknown';
-            }).join(', ');
+            }).slice(0, 3).join(', ') + (t.assignedTo?.length > 3 ? '...' : '');
             const sub = (t.subdivs || (t.subdiv ? [t.subdiv] : [])).join(' & ');
             return `<div class="plotting-item">
               <span class="p-sub" style="color:${SUBDIV_COLORS[t.subdivs?.[0]] || '#7c3aed'}">${sub}:</span> 
@@ -166,7 +181,7 @@ function renderEvents() {
     }
 
     return `
-    <div class="event-card animate-on-scroll" style="--i:${i}">
+    <div class="event-card animate-on-scroll" style="--i:${i}" onclick="showEventDetail('${e.id}')">
       <div class="event-date-badge">
         <div class="event-day">${day}</div>
         <div class="event-month">${month}</div>
@@ -273,49 +288,101 @@ function renderSubdivOverview() {
   }).join('');
 }
 
-/* ─── TASK MODAL ─── */
+/* ─── TASK & EVENT MODALS ─── */
 window.showTaskDetail = function(id) {
   const t = tasks.find(x=>x.id===id);
   if(!t) return;
   const STATUS_LABEL = {todo:'To Do',inprogress:'In Progress',done:'Selesai'};
-  const color = SUBDIV_COLORS[t.subdiv]||'#7c3aed';
   
   document.getElementById('m-title').textContent = t.title;
+  document.getElementById('m-header-extra').innerHTML = '';
+  
   const mSub = document.getElementById('m-subdiv');
   const tSubdivs = t.subdivs || (t.subdiv ? [t.subdiv] : []);
   mSub.innerHTML = tSubdivs.map(s => {
     const color = SUBDIV_COLORS[s] || '#7c3aed';
     return `<span style="background:${color}22; color:${color}; padding:4px 12px; border-radius:99px; font-size:11px; font-weight:700; margin-right:6px;">${s}</span>`;
   }).join('');
-  mSub.style.background = 'transparent'; // Reset default background
   
   const mStat = document.getElementById('m-status');
   mStat.textContent = STATUS_LABEL[t.status];
-  mStat.className = 'status-badge status-' + t.status;
+  mStat.className = `status-badge status-${t.status}`;
   
   document.getElementById('m-desc').textContent = t.description || 'Tidak ada deskripsi.';
-  document.getElementById('m-due').textContent = t.dueDate || 'Tidak ada deadline.';
+  document.getElementById('m-date-label').textContent = 'Deadline';
+  document.getElementById('m-due').textContent = t.dueDate || 'Belum ditentukan';
   
-  // Show related event
-  const existingEventSection = document.getElementById('m-event-section');
-  if(existingEventSection) existingEventSection.remove();
-
-  const mEvent = document.createElement('div');
-  mEvent.id = 'm-event-section';
-  mEvent.className = 'modal-section';
-  const relatedEvent = events.find(e => e.id === t.eventId);
-  mEvent.innerHTML = `<h3>Event Terkait</h3><p>${relatedEvent ? relatedEvent.title : 'Tidak dihubungkan ke event tertentu'}</p>`;
+  // Event Context
+  const evSection = document.getElementById('m-event-section');
+  if(t.eventId) {
+    const ev = events.find(e => e.id === t.eventId);
+    document.getElementById('m-event').textContent = ev ? ev.title : 'Event tidak ditemukan';
+    evSection.style.display = 'block';
+  } else {
+    evSection.style.display = 'none';
+  }
   
-  const mBody = document.querySelector('.modal-body');
-  // Insert before assignees section
-  mBody.insertBefore(mEvent, document.querySelector('.modal-section:last-child'));
-
+  // Assignees
   const mAss = document.getElementById('m-assignees');
-  mAss.innerHTML = (t.assignedTo||[]).map(mid => {
-    const m = members.find(x=>x.id===mid);
-    return m ? `<div style="background:var(--bg3);padding:6px 12px;border-radius:20px;font-size:12px;border:1px solid var(--border)">${m.name}</div>` : '';
+  mAss.innerHTML = (t.assignedTo || []).map(uid => {
+    const m = members.find(x => x.id === uid);
+    if(!m) return '';
+    return `<div class="member-chip" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); padding:6px 12px; border-radius:10px; font-size:12px;">${m.name}</div>`;
   }).join('');
   
+  document.getElementById('m-plotting-list').style.display = 'none';
+  document.getElementById('m-meta-wrap').style.display = 'flex';
+  
+  document.getElementById('taskModal').classList.add('open');
+};
+
+window.showEventDetail = function(id) {
+  const e = events.find(x=>x.id===id);
+  if(!e) return;
+  
+  document.getElementById('m-title').textContent = `Plottingan ${e.title}`;
+  document.getElementById('m-header-extra').innerHTML = `<div style="font-size:14px; color:var(--text3); display:flex; gap:15px; margin-bottom:10px;">
+    <span>📅 ${e.date}</span>
+    <span>📍 ${e.location || 'TBA'}</span>
+  </div>`;
+  
+  document.getElementById('m-desc').textContent = e.description || 'Tidak ada deskripsi event.';
+  document.getElementById('m-date-label').textContent = 'Pelaksanaan';
+  document.getElementById('m-due').textContent = `${e.date} (${e.time || 'Waktu TBA'})`;
+  
+  document.getElementById('m-meta-wrap').style.display = 'none';
+  document.getElementById('m-event-section').style.display = 'none';
+  
+  const eventTasks = tasks.filter(t => t.eventId === e.id);
+  const plotList = document.getElementById('m-plotting-list');
+  const plotItems = document.getElementById('m-plotting-items');
+  
+  if(eventTasks.length > 0) {
+    plotList.style.display = 'block';
+    plotItems.innerHTML = eventTasks.map(t => {
+      const assignedNames = (t.assignedTo || []).map(uid => {
+        const m = members.find(x => x.id === uid);
+        return m ? m.name : 'Unknown';
+      }).join(', ');
+      
+      const tSubdivs = t.subdivs || (t.subdiv ? [t.subdiv] : []);
+      const badges = tSubdivs.map(s => {
+        const color = SUBDIV_COLORS[s] || '#7c3aed';
+        return `<span style="color:${color}; font-weight:800; font-size:11px; text-transform:uppercase; margin-right:8px;">${s}</span>`;
+      }).join('');
+
+      return `<div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:15px; border-radius:14px; margin-bottom:10px;">
+        <div style="margin-bottom:8px;">${badges} <span class="status-badge status-${t.status}" style="font-size:10px; padding:2px 8px;">${t.status}</span></div>
+        <div style="font-weight:700; margin-bottom:4px;">${t.title}</div>
+        <div style="font-size:13px; color:var(--text2);">👥 ${assignedNames || 'Belum diplot'}</div>
+      </div>`;
+    }).join('');
+  } else {
+    plotList.style.display = 'block';
+    plotItems.innerHTML = '<p style="color:var(--text3); font-size:14px;">Belum ada plottingan tugas untuk event ini.</p>';
+  }
+  
+  document.getElementById('m-assignees').innerHTML = '';
   document.getElementById('taskModal').classList.add('open');
 };
 
