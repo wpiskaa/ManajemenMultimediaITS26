@@ -123,17 +123,19 @@ function renderEvents() {
   const grid = document.getElementById('eventGrid');
   if (!grid) return;
   if (!events.length) {
-    grid.innerHTML = '<div class="no-data"><p>Belum ada event mendatang.</p></div>';
+    grid.innerHTML = '<div class="no-data"><p>Belum ada data event di database.</p></div>';
     return;
   }
-  const today = new Date().toISOString().slice(0,10);
-  const sorted = [...events].filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
+  // Tampilkan semua event untuk pengecekan awal, urutkan dari yang terbaru
+  const sorted = [...events].sort((a,b)=>b.date.localeCompare(a.date));
   
   grid.innerHTML = sorted.map((e, i) => {
-    const d = new Date(e.date + 'T00:00:00');
-    const day = d.getDate();
-    const month = d.toLocaleDateString('id-ID', {month:'short'}).toUpperCase();
-    return `
+    let day = '??', month = '???';
+    try {
+      const d = new Date(e.date + 'T00:00:00');
+      day = d.getDate();
+      month = d.toLocaleDateString('id-ID', {month:'short'}).toUpperCase();
+    } catch(err) {}
     <div class="event-card animate-on-scroll" style="--i:${i}">
       <div class="event-date-badge">
         <div class="event-day">${day}</div>
