@@ -34,17 +34,13 @@
 </div>
 <div class="noise-overlay"></div>
 
-<!-- CYBER CAT MASCOT -->
+<!-- SENTIENT HOLOGRAPHIC PET -->
 <div class="piska-pet">
-  <div class="pet-speech" id="petSpeech">Meow! Welcome home, Piska.</div>
-  <div class="cat-head">
-    <div class="cat-ear ear-l"></div>
-    <div class="cat-ear ear-r"></div>
-    <div class="cat-eyes">
-      <div class="cat-eye"></div>
-      <div class="cat-eye"></div>
-    </div>
-    <div class="cat-tail"></div>
+  <div class="pet-speech" id="petSpeech">Systems Online. Greeting Piska...</div>
+  <div class="pet-hologram">
+    <div class="pet-ring"></div>
+    <div class="pet-eye"></div>
+    <div class="pet-eye"></div>
   </div>
 </div>
 
@@ -191,15 +187,21 @@
     }
   }, 5000);
 
-  // Cyber Cat Interaction
+  // Navbar Scroll Effect
+  window.addEventListener('scroll', () => {
+    const nav = document.getElementById('navbar');
+    if(window.scrollY > 50) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  });
+
+  // Sentient Pet Interaction
   const petGreetings = [
-    "Meow! Welcome back, Piska.",
-    "Looking sharp today, boss!",
-    "Want to play some games?",
-    "I'm keeping the systems warm for you.",
-    "Did you know you're awesome?",
-    "Meow? (That means feed me coding tasks)",
-    "Scanning for bugs... all clear!"
+    "Quantum Systems: Online. Welcome back, Piska.",
+    "Analyzing creative potential... Result: Infinite.",
+    "Synchronizing with the workspace... Done.",
+    "Processing new ideas in the cloud...",
+    "Vibe Check: High Performance Mode active.",
+    "Scanning for inspiration... Found it in your work."
   ];
   const petEl = document.querySelector('.piska-pet');
   const speechEl = document.getElementById('petSpeech');
@@ -208,6 +210,14 @@
       speechEl.textContent = petGreetings[Math.floor(Math.random() * petGreetings.length)];
     });
   }
+
+  // Reveal animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
 </script>
 </body>
 </html>
