@@ -169,14 +169,18 @@ function renderTasksTable() {
   const STATUS_LABEL={todo:'To Do',inprogress:'In Progress',done:'Selesai'};
   if(!tasks.length){tbody.innerHTML=`<tr><td colspan="6" class="table-empty">Belum ada tugas.</td></tr>`;return;}
   tbody.innerHTML = tasks.map(t=>{
-    const color=SUBDIV_COLORS[t.subdiv]||'#7c3aed';
+    const tSubdivs = t.subdivs || (t.subdiv ? [t.subdiv] : []);
+    const subdivBadges = tSubdivs.map(s => {
+      const color = SUBDIV_COLORS[s] || '#7c3aed';
+      return `<span class="subdiv-badge" style="background:${color}22; color:${color}; margin-right:4px">${s}</span>`;
+    }).join(' ');
     const assignedNames=(t.assignedTo||[]).map(id=>{
       const m=members.find(x=>x.id===id); return m?m.name:'?';
     }).join(', ')||'-';
     const sbClass={todo:'sb-todo',inprogress:'sb-inprogress',done:'sb-done'}[t.status]||'sb-todo';
     return `<tr>
       <td><strong>${t.title}</strong>${t.priority==='high'?'<span class="subdiv-badge priority-hi" style="margin-left:6px">Penting</span>':''}</td>
-      <td><span class="subdiv-badge" style="background:${color}22;color:${color}">${t.subdiv}</span></td>
+      <td><div style="display:flex;flex-wrap:wrap;gap:4px">${subdivBadges}</div></td>
       <td style="font-size:12px">${assignedNames}</td>
       <td style="font-size:12px">${t.dueDate||'-'}</td>
       <td><span class="status-badge ${sbClass}">${STATUS_LABEL[t.status]}</span></td>
@@ -272,7 +276,15 @@ function buildForm(type,editId) {
     const eventOptions = `<option value="">-- Tanpa Event --</option>` + events.map(e=>`<option value="${e.id}"${t.eventId===e.id?' selected':''}>${e.title}</option>`).join('');
     return `<div class="form-group"><label class="form-label">Judul Tugas *</label><input class="form-input" id="f-title" value="${t.title||''}"></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Sub-divisi *</label><select class="form-select" id="f-subdiv">${SUBDIV_LIST.map(s=>`<option value="${s}"${t.subdiv===s?' selected':''}>${s}</option>`).join('')}</select></div>
+        <div class="form-group">
+          <label class="form-label">Sub-divisi (Bisa pilih lebih dari 1) *</label>
+          <div class="roles-grid" id="taskSubdivGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            ${SUBDIV_LIST.map(s => {
+              const isChecked = (t.subdivs || (t.subdiv ? [t.subdiv] : [])).includes(s);
+              return `<label class="assignee-check"><input type="checkbox" value="${s}"${isChecked?' checked':''}><span>${s}</span></label>`;
+            }).join('')}
+          </div>
+        </div>
         <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="f-status"><option value="todo"${t.status==='todo'?' selected':''}>To Do</option><option value="inprogress"${t.status==='inprogress'?' selected':''}>In Progress</option><option value="done"${t.status==='done'?' selected':''}>Selesai</option></select></div>
       </div>
       <div class="form-row">
@@ -323,7 +335,9 @@ async function saveModal(type, editId) {
     item={title:g('f-title'),date:g('f-date'),time:g('f-time'),location:g('f-location'),type:g('f-type'),description:g('f-desc')};
   } else if(type==='task') {
     if(!g('f-title')){alert('Judul tugas wajib diisi!');return;}
-    item={title:g('f-title'),subdiv:g('f-subdiv'),status:g('f-status'),dueDate:g('f-due'),priority:g('f-priority'),description:g('f-desc'),eventId:g('f-event'),assignedTo:[...document.querySelectorAll('#assigneesGrid input:checked')].map(c=>c.value)};
+    const selectedSubdivs = [...document.querySelectorAll('#taskSubdivGrid input:checked')].map(c=>c.value);
+    if(!selectedSubdivs.length){alert('Pilih minimal satu sub-divisi!');return;}
+    item={title:g('f-title'),subdivs:selectedSubdivs,status:g('f-status'),dueDate:g('f-due'),priority:g('f-priority'),description:g('f-desc'),eventId:g('f-event'),assignedTo:[...document.querySelectorAll('#assigneesGrid input:checked')].map(c=>c.value)};
   } else if(type==='member') {
     if(!g('f-name')){alert('Nama wajib diisi!');return;}
     const selectedRoles = [...document.querySelectorAll('#rolesGrid input:checked')].map(c=>c.value);

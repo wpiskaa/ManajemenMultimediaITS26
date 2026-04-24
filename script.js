@@ -176,32 +176,34 @@ window.filterTasks = function(subdiv, btn) {
 function renderTasks() {
   const board = document.getElementById('tasksBoard');
   if (!board) return;
-  const filtered = currentFilter === 'all' ? tasks : tasks.filter(t => t.subdiv === currentFilter);
+  const filtered = currentFilter === 'all' 
+    ? tasks 
+    : tasks.filter(t => (t.subdivs || (t.subdiv ? [t.subdiv] : [])).includes(currentFilter));
+  
   if (!filtered.length) {
     board.innerHTML = '<div class="no-data"><p>Tidak ada tugas untuk kategori ini.</p></div>';
     return;
   }
   const STATUS_LABEL = {todo:'To Do',inprogress:'In Progress',done:'Selesai'};
   board.innerHTML = filtered.map((t, i) => {
-    const color = SUBDIV_COLORS[t.subdiv] || '#7c3aed';
-    const assignees = (t.assignedTo || []).map(mid => {
-      const m = members.find(x => x.id === mid);
-      const initials = m ? m.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) : '?';
-      return `<div class="assignee-avatar" title="${m?m.name:''}">${initials}</div>`;
+    const tSubdivs = t.subdivs || (t.subdiv ? [t.subdiv] : []);
+    const subdivBadges = tSubdivs.map(s => {
+      const color = SUBDIV_COLORS[s] || '#7c3aed';
+      return `<div class="task-subdiv" style="margin-bottom:4px">
+        <div class="subdiv-dot" style="background:${color}"></div>
+        ${s}
+      </div>`;
     }).join('');
-    const dueLabel = t.dueDate ? new Date(t.dueDate+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '-';
+
     return `
-    <div class="task-card animate-on-scroll" style="--i:${i}" data-subdiv="${t.subdiv}" onclick="showTaskDetail('${t.id}')">
+    <div class="task-card animate-on-scroll" style="--i:${i}" onclick="showTaskDetail('${t.id}')">
       <div class="task-header">
         <div class="task-title">${t.title}</div>
         <span class="task-status status-${t.status}">${STATUS_LABEL[t.status]||t.status}</span>
       </div>
       <p class="task-desc">${t.description ? t.description.substring(0,80)+(t.description.length>80?'...':'') : 'Tidak ada deskripsi.'}</p>
-      <div class="task-footer">
-        <div class="task-subdiv">
-          <div class="subdiv-dot" style="background:${color}"></div>
-          ${t.subdiv}
-        </div>
+      <div class="task-footer" style="flex-direction:column; align-items:flex-start; gap:8px;">
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">${subdivBadges}</div>
         <div class="task-due">📅 ${dueLabel}</div>
       </div>
       <div class="task-assignees">${assignees}</div>
@@ -215,7 +217,7 @@ function renderSubdivOverview() {
   if(!wrap) return;
   const subdivs = Object.keys(SUBDIV_COLORS);
   wrap.innerHTML = subdivs.map(s => {
-    const subTasks = tasks.filter(t => t.subdiv === s);
+    const subTasks = tasks.filter(t => (t.subdivs || (t.subdiv ? [t.subdiv] : [])).includes(s));
     const done = subTasks.filter(t => t.status === 'done').length;
     const prog = subTasks.length ? Math.round((done/subTasks.length)*100) : 0;
     const color = SUBDIV_COLORS[s];
@@ -237,9 +239,12 @@ window.showTaskDetail = function(id) {
   
   document.getElementById('m-title').textContent = t.title;
   const mSub = document.getElementById('m-subdiv');
-  mSub.textContent = t.subdiv;
-  mSub.style.background = color + '22';
-  mSub.style.color = color;
+  const tSubdivs = t.subdivs || (t.subdiv ? [t.subdiv] : []);
+  mSub.innerHTML = tSubdivs.map(s => {
+    const color = SUBDIV_COLORS[s] || '#7c3aed';
+    return `<span style="background:${color}22; color:${color}; padding:4px 12px; border-radius:99px; font-size:11px; font-weight:700; margin-right:6px;">${s}</span>`;
+  }).join('');
+  mSub.style.background = 'transparent'; // Reset default background
   
   const mStat = document.getElementById('m-status');
   mStat.textContent = STATUS_LABEL[t.status];
