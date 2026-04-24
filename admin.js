@@ -166,29 +166,66 @@ function renderEventsTable() {
 function renderTasksTable() {
   const tbody = document.getElementById('tasksBody');
   if(!tbody) return;
-  const STATUS_LABEL={todo:'To Do',inprogress:'In Progress',done:'Selesai'};
   if(!tasks.length){tbody.innerHTML=`<tr><td colspan="6" class="table-empty">Belum ada tugas.</td></tr>`;return;}
-  tbody.innerHTML = tasks.map(t=>{
-    const tSubdivs = t.subdivs || (t.subdiv ? [t.subdiv] : []);
-    const subdivBadges = tSubdivs.map(s => {
-      const color = SUBDIV_COLORS[s] || '#7c3aed';
-      return `<span class="subdiv-badge" style="background:${color}22; color:${color}; margin-right:4px">${s}</span>`;
-    }).join(' ');
-    const assignedNames=(t.assignedTo||[]).map(id=>{
-      const m=members.find(x=>x.id===id); return m?m.name:'?';
-    }).join(', ')||'-';
-    const sbClass={todo:'sb-todo',inprogress:'sb-inprogress',done:'sb-done'}[t.status]||'sb-todo';
-    return `<tr>
-      <td><strong>${t.title}</strong>${t.priority==='high'?'<span class="subdiv-badge priority-hi" style="margin-left:6px">Penting</span>':''}</td>
-      <td><div style="display:flex;flex-wrap:wrap;gap:4px">${subdivBadges}</div></td>
-      <td style="font-size:12px">${assignedNames}</td>
-      <td style="font-size:12px">${t.dueDate||'-'}</td>
-      <td><span class="status-badge ${sbClass}">${STATUS_LABEL[t.status]}</span></td>
-      <td><div class="col-actions">
-        <button class="btn-edit" onclick="openModal('task','${t.id}')">Edit</button>
-        <button class="btn-del" onclick="deleteItem('task','${t.id}')">Hapus</button>
-      </div></td>
-    </tr>`;}).join('');
+
+  const html = [];
+  
+  // Sort events by date to have logical order
+  const sortedEvents = [...events].sort((a,b) => a.date.localeCompare(b.date));
+
+  // Tasks with Events
+  sortedEvents.forEach(e => {
+    const eventTasks = tasks.filter(t => t.eventId === e.id);
+    if(eventTasks.length > 0) {
+      html.push(`<tr style="background:rgba(124,58,237,0.05);">
+        <td colspan="6" style="padding:12px 20px; font-weight:800; color:var(--purple-l); font-size:12px; text-transform:uppercase; letter-spacing:1px; border-left:4px solid var(--purple);">
+          📅 Event: ${e.title} <span style="margin-left:10px; font-weight:400; opacity:0.7;">(${e.date})</span>
+        </td>
+      </tr>`);
+      eventTasks.forEach(t => html.push(renderTaskRow(t)));
+    }
+  });
+
+  // Tasks without Events
+  const noEventTasks = tasks.filter(t => !t.eventId);
+  if(noEventTasks.length > 0) {
+    html.push(`<tr style="background:rgba(255,255,255,0.03);">
+      <td colspan="6" style="padding:12px 20px; font-weight:800; color:var(--text3); font-size:12px; text-transform:uppercase; letter-spacing:1px; border-left:4px solid var(--text3);">
+        📌 Tugas Tanpa Event (Umum / Rutin)
+      </td>
+    </tr>`);
+    noEventTasks.forEach(t => html.push(renderTaskRow(t)));
+  }
+
+  tbody.innerHTML = html.join('');
+}
+
+function renderTaskRow(t) {
+  const STATUS_LABEL = {todo:'To Do',inprogress:'In Progress',done:'Selesai'};
+  const tSubdivs = t.subdivs || (t.subdiv ? [t.subdiv] : []);
+  const subdivBadges = tSubdivs.map(s => {
+    const color = SUBDIV_COLORS[s] || '#7c3aed';
+    return `<span class="subdiv-badge" style="background:${color}22; color:${color}; margin-right:4px">${s}</span>`;
+  }).join(' ');
+  
+  const assignedNames = (t.assignedTo || []).map(id => {
+    const m = members.find(x => x.id === id); 
+    return m ? m.name : '?';
+  }).join(', ') || '-';
+  
+  const sbClass = {todo:'sb-todo',inprogress:'sb-inprogress',done:'sb-done'}[t.status] || 'sb-todo';
+  
+  return `<tr>
+    <td style="padding-left:35px;"><strong>${t.title}</strong>${t.priority==='high'?'<span class="subdiv-badge priority-hi" style="margin-left:6px">Penting</span>':''}</td>
+    <td><div style="display:flex;flex-wrap:wrap;gap:4px">${subdivBadges}</div></td>
+    <td style="font-size:12px">${assignedNames}</td>
+    <td style="font-size:12px">${t.dueDate||'-'}</td>
+    <td><span class="status-badge ${sbClass}">${STATUS_LABEL[t.status]}</span></td>
+    <td><div class="col-actions">
+      <button class="btn-edit" onclick="openModal('task','${t.id}')">Edit</button>
+      <button class="btn-del" onclick="deleteItem('task','${t.id}')">Hapus</button>
+    </div></td>
+  </tr>`;
 }
 
 function renderMembersTable() {
