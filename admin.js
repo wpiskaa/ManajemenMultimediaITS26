@@ -170,16 +170,29 @@ function renderTasksTable() {
 
   const html = [];
   
-  // Sort events by date to have logical order
-  const sortedEvents = [...events].sort((a,b) => a.date.localeCompare(b.date));
+  // Group events by their title to unify multi-day events
+  const unifiedEvents = {};
+  events.forEach(e => {
+    if(!unifiedEvents[e.title]) unifiedEvents[e.title] = { title: e.title, ids: [], dates: [] };
+    unifiedEvents[e.title].ids.push(e.id);
+    unifiedEvents[e.title].dates.push(e.date);
+  });
 
-  // Tasks with Events
-  sortedEvents.forEach(e => {
-    const eventTasks = tasks.filter(t => t.eventId === e.id);
+  // Sort unified groups by their earliest date
+  const sortedUnified = Object.values(unifiedEvents).sort((a,b) => {
+    const dateA = a.dates.sort()[0];
+    const dateB = b.dates.sort()[0];
+    return dateA.localeCompare(dateB);
+  });
+
+  // Tasks with Events (Unified)
+  sortedUnified.forEach(group => {
+    const eventTasks = tasks.filter(t => group.ids.includes(t.eventId));
     if(eventTasks.length > 0) {
+      const displayDates = [...new Set(group.dates)].sort().join(', ');
       html.push(`<tr style="background:rgba(124,58,237,0.05);">
         <td colspan="6" style="padding:12px 20px; font-weight:800; color:var(--purple-l); font-size:12px; text-transform:uppercase; letter-spacing:1px; border-left:4px solid var(--purple);">
-          📅 Event: ${e.title} <span style="margin-left:10px; font-weight:400; opacity:0.7;">(${e.date})</span>
+          📅 Event: ${group.title} <span style="margin-left:10px; font-weight:400; opacity:0.7;">(${displayDates})</span>
         </td>
       </tr>`);
       eventTasks.forEach(t => html.push(renderTaskRow(t)));
