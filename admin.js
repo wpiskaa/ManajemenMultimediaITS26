@@ -294,10 +294,20 @@ function buildForm(type,editId) {
       <div class="form-group"><label class="form-label">Hubungkan ke Event</label><select class="form-select" id="f-event">${eventOptions}</select></div>
       <div class="form-group"><label class="form-label">Deskripsi</label><textarea class="form-textarea" id="f-desc">${t.description||''}</textarea></div>
       <div class="form-group"><label class="form-label">Assign ke Anggota</label>
-      <div class="assignees-grid" id="assigneesGrid">${members.map(m=>{
-        const mRoles = m.roles || (m.role ? [m.role] : []);
-        const roleStr = mRoles.length ? mRoles.join(', ') : 'Tanpa Role';
-        return `<label class="assignee-check"><input type="checkbox" value="${m.id}"${(t.assignedTo||[]).includes(m.id)?' checked':''}><span>${m.name} (${roleStr})</span></label>`;
+      <div class="assignees-grid" id="assigneesGrid" style="display:block;">${SUBDIV_LIST.map(s => {
+        const subMembers = members.filter(m => (m.roles || (m.role ? [m.role] : [])).includes(s));
+        if(!subMembers.length) return '';
+        return `
+          <div style="margin-top:15px; margin-bottom:8px; font-size:11px; font-weight:800; color:var(--purple-l); text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid rgba(124,58,237,0.2); padding-bottom:4px;">${s}</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            ${subMembers.map(m => `
+              <label class="assignee-check">
+                <input type="checkbox" value="${m.id}" onchange="syncCheckboxes(this)" ${(t.assignedTo||[]).includes(m.id)?' checked':''}>
+                <span>${m.name}</span>
+              </label>
+            `).join('')}
+          </div>
+        `;
       }).join('')}</div></div>`;
   }
   if(type==='member') {
@@ -343,7 +353,8 @@ async function saveModal(type, editId) {
     if(!g('f-title')){alert('Judul tugas wajib diisi!');return;}
     const selectedSubdivs = [...document.querySelectorAll('#taskSubdivGrid input:checked')].map(c=>c.value);
     if(!selectedSubdivs.length){alert('Pilih minimal satu sub-divisi!');return;}
-    item={title:g('f-title'),subdivs:selectedSubdivs,status:g('f-status'),dueDate:g('f-due'),priority:g('f-priority'),description:g('f-desc'),eventId:g('f-event'),assignedTo:[...document.querySelectorAll('#assigneesGrid input:checked')].map(c=>c.value)};
+    const assignedIds = [...document.querySelectorAll('#assigneesGrid input:checked')].map(c=>c.value);
+    item={title:g('f-title'),subdivs:selectedSubdivs,status:g('f-status'),dueDate:g('f-due'),priority:g('f-priority'),description:g('f-desc'),eventId:g('f-event'),assignedTo:[...new Set(assignedIds)]};
   } else if(type==='member') {
     if(!g('f-name')){alert('Nama wajib diisi!');return;}
     const selectedRoles = [...document.querySelectorAll('#rolesGrid input:checked')].map(c=>c.value);
@@ -417,4 +428,12 @@ window.importData = async function(event) {
 
 window.resetData = function() {
   if (confirm('Fitur reset dinonaktifkan di versi Firebase untuk keamanan.')) return;
+};
+
+window.syncCheckboxes = function(el) {
+  const val = el.value;
+  const isChecked = el.checked;
+  document.querySelectorAll(`#assigneesGrid input[value="${val}"]`).forEach(input => {
+    input.checked = isChecked;
+  });
 };
