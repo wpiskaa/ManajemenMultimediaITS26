@@ -9,6 +9,27 @@
 </head>
 <body>
 
+<!-- PORTAL ACCESS LOGIN -->
+<div class="login-overlay" id="portalLoginOverlay" style="display: flex;">
+  <div class="login-bg">
+    <div class="login-aurora login-aurora-1"></div>
+    <div class="login-aurora login-aurora-2"></div>
+  </div>
+  <div class="login-card">
+    <div class="login-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <h1 class="login-title">Multimedia Portal</h1>
+    <p class="login-sub">Masukkan PIN Akses Divisi</p>
+    <div class="form-group">
+      <label class="form-label">PIN Akses</label>
+      <input type="password" class="form-input" id="portalPin" placeholder="Masukkan PIN" onkeydown="if(event.key==='Enter')checkPortalAccess()">
+    </div>
+    <div class="login-error" id="portalLoginError"></div>
+    <button class="btn-login" onclick="checkPortalAccess()">Buka Portal</button>
+  </div>
+</div>
+
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="nav-container">

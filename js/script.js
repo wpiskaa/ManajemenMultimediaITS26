@@ -36,6 +36,7 @@ let notes = [];
 
 /* ─── INITIALIZATION ─── */
 function init() {
+  checkAccessOnLoad();
   try {
     initRealtime();
   } catch (err) {
@@ -46,6 +47,31 @@ function init() {
   setupParticles();
   setupScrollObserver();
   setupQuoteRotator();
+}
+
+/* ─── PORTAL ACCESS ─── */
+window.checkPortalAccess = function() {
+  const pin = document.getElementById('portalPin')?.value;
+  const error = document.getElementById('portalLoginError');
+  if(pin === 'pdd123') {
+    sessionStorage.setItem('portal_access', 'true');
+    document.getElementById('portalLoginOverlay').style.display = 'none';
+  } else {
+    if(error) {
+      error.textContent = 'PIN Salah! Silakan hubungi koordinator.';
+      error.style.display = 'block';
+    }
+  }
+};
+
+function checkAccessOnLoad() {
+  if(window.location.pathname.includes('portal.html')) {
+    const hasAccess = sessionStorage.getItem('portal_access');
+    if(hasAccess === 'true') {
+      const overlay = document.getElementById('portalLoginOverlay');
+      if(overlay) overlay.style.display = 'none';
+    }
+  }
 }
 
 function initRealtime() {
