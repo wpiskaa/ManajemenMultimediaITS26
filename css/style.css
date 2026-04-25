@@ -904,3 +904,64 @@ footer strong { color:var(--purple-l); }
   cursor:pointer; transition:var(--t); margin-top:4px;
 }
 .btn-login:hover { opacity:.85; transform:translateY(-1px); }
+
+/* ── PORTAL LOGIN ── */
+.portal-login-overlay {
+  position:fixed; inset:0; z-index:9999;
+  background:var(--bg); display:flex; align-items:center; justify-content:center;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.portal-login-overlay.hidden {
+  opacity:0; pointer-events:none;
+}
+.login-content {
+  width:100%; max-width:400px; padding:40px; text-align:center;
+  background:rgba(255,255,255,0.03); border:1px solid var(--border);
+  backdrop-filter:blur(20px); border-radius:32px;
+  box-shadow:0 40px 100px rgba(0,0,0,0.5);
+  animation: loginFade 0.6s ease-out;
+}
+@keyframes loginFade { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+.login-logo {
+  width:64px; height:64px; background:var(--purple); border-radius:18px;
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  margin:0 auto 24px; box-shadow:0 15px 30px rgba(124,58,237,0.3);
+}
+.login-title { font-size:24px; font-weight:800; margin-bottom:8px; }
+.login-sub { color:var(--text3); font-size:14px; margin-bottom:32px; }
+
+.login-input-group { margin-bottom:20px; text-align:left; }
+.login-label { display:block; font-size:12px; font-weight:700; color:var(--purple-l); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px; }
+.login-input {
+  width:100%; padding:14px 20px; background:rgba(255,255,255,0.05);
+  border:1px solid var(--border); border-radius:14px; color:#fff;
+  font-size:16px; transition:var(--t);
+}
+.login-input:focus { border-color:var(--purple-l); background:rgba(255,255,255,0.08); outline:none; }
+
+.btn-portal-enter {
+  width:100%; padding:14px; background:var(--purple); color:#fff;
+  border:none; border-radius:14px; font-size:15px; font-weight:700;
+  cursor:pointer; transition:var(--t); box-shadow:0 10px 20px rgba(124,58,237,0.2);
+}
+.btn-portal-enter:hover { transform:translateY(-2px); box-shadow:0 15px 30px rgba(124,58,237,0.3); }
+.login-error { color:#ef4444; font-size:13px; margin-top:16px; height:20px; font-weight:600; }
+
+/* ── AURORA BACKGROUND ── */
+.aurora-bg {
+  position:absolute; inset:0; overflow:hidden; z-index:-1;
+  background:#020617;
+}
+.aurora {
+  position:absolute; width:60vw; height:60vw; border-radius:50%;
+  filter:blur(80px); opacity:0.15; mix-blend-mode:screen;
+  animation: auroraMove 20s infinite alternate;
+}
+.aurora-1 { background:var(--purple); top:-10%; left:-10%; }
+.aurora-2 { background:var(--pink); bottom:-10%; right:-10%; animation-delay:-10s; }
+
+@keyframes auroraMove {
+  0% { transform:translate(0,0) rotate(0deg) scale(1); }
+  100% { transform:translate(20%, 20%) rotate(20deg) scale(1.2); }
+}

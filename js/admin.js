@@ -29,11 +29,7 @@ const SUBDIV_LIST = ['fotografer','videografer','desainer grafis','content creat
 const EVENT_TYPES = ['Rapat','Event','Workshop','Peliputan','Lainnya'];
 
 /* ─── STATE ─── */
-let members = [];
-let events  = [];
-let tasks   = [];
-let announcements = [];
-let notes = [];
+let members = [], events = [], tasks = [], announcements = [], notes = [], portfolio = [];
 
 /* ─── AUTH ─── */
 window.doLogin = function() {
@@ -109,6 +105,10 @@ function initRealtime() {
   onSnapshot(collection(db, "notes"), snap => {
     notes = snap.docs.map(d => ({id: d.id, ...d.data()}));
     renderNotesTable();
+  });
+  onSnapshot(collection(db, "siteContent"), snap => {
+    portfolio = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderPortfolioTable();
   });
 }
 
@@ -295,6 +295,21 @@ function renderNotesTable() {
   </tr>`).join('');
 }
 
+function renderPortfolioTable() {
+  const tbody = document.getElementById('portfolioBody');
+  if(!tbody) return;
+  if(!portfolio.length){tbody.innerHTML=`<tr><td colspan="4" class="table-empty">Belum ada konten portofolio.</td></tr>`;return;}
+  tbody.innerHTML = portfolio.sort((a,b)=>a.category.localeCompare(b.category)).map(p=>`<tr>
+    <td><strong>${p.title}</strong><div style="font-size:11px;color:var(--text3)">${p.extra || ''}</div></td>
+    <td><span class="subdiv-badge" style="background:rgba(124,58,237,.12);color:var(--purple-l)">${p.category}</span></td>
+    <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis">${p.url}</td>
+    <td><div class="col-actions">
+      <button class="btn-edit" onclick="openModal('portfolio','${p.id}')">Edit</button>
+      <button class="btn-del" onclick="deleteItem('portfolio','${p.id}')">Hapus</button>
+    </div></td>
+  </tr>`).join('');
+}
+
 /* ─── MODAL ─── */
 let currentModalType='', currentEditId=null;
 window.openModal = function(type, editId=null) {
@@ -386,6 +401,13 @@ function buildForm(type,editId) {
       <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" class="form-input" id="f-date" value="${n.date||new Date().toISOString().slice(0,10)}"></div>
       <div class="form-group"><label class="form-label">Topik Utama</label><input class="form-input" id="f-topic" value="${n.topic||''}"></div>
       <div class="form-group"><label class="form-label">Isi Notulensi *</label><textarea class="form-textarea" style="min-height:150px" id="f-content">${n.content||''}</textarea></div>`;
+  if(type==='portfolio') {
+    const p=editId?portfolio.find(x=>x.id===editId):{category:'video'};
+    return `<div class="form-group"><label class="form-label">Kategori *</label><select class="form-select" id="f-category"><option value="video"${p.category==='video'?' selected':''}>Video Narratives</option><option value="music"${p.category==='music'?' selected':''}>Soundtrack (Music)</option><option value="gallery"${p.category==='gallery'?' selected':''}>Visual Journal (Gallery)</option></select></div>
+      <div class="form-group"><label class="form-label">Judul *</label><input class="form-input" id="f-title" value="${p.title||''}"></div>
+      <div class="form-group"><label class="form-label">URL Asset / File *</label><input class="form-input" id="f-url" value="${p.url||''}" placeholder="assets/video.mp4 atau link gdrive"></div>
+      <div class="form-group"><label class="form-label">Keterangan Tambahan</label><input class="form-input" id="f-extra" value="${p.extra||''}" placeholder="Artist / Lokasi / Deskripsi Singkat"></div>
+      <div class="form-group"><label class="form-label">Thumbnail / Cover URL</label><input class="form-input" id="f-cover" value="${p.cover||''}" placeholder="assets/thumb.jpg"></div>`;
   }
   return '';
 }
@@ -416,6 +438,9 @@ async function saveModal(type, editId) {
   } else if(type==='note') {
     if(!g('f-title')||!g('f-content')){alert('Judul dan isi wajib diisi!');return;}
     item={title:g('f-title'),content:g('f-content'),date:g('f-date'),topic:g('f-topic')};
+  } else if(type==='portfolio') {
+    if(!g('f-title')||!g('f-url')){alert('Judul dan URL wajib diisi!');return;}
+    item={category:g('f-category'),title:g('f-title'),url:g('f-url'),extra:g('f-extra'),cover:g('f-cover')};
   }
 
   try {
@@ -439,7 +464,7 @@ async function saveModal(type, editId) {
 
 window.deleteItem = async function(type, id) {
   if(!confirm(`Yakin ingin menghapus ini?`)) return;
-  const col = type==='member'?'members':type==='announcement'?'announcements':type==='note'?'notes':type+'s';
+  const col = type==='member'?'members':type==='announcement'?'announcements':type==='note'?'notes':type==='portfolio'?'siteContent':type+'s';
   try {
     await deleteDoc(doc(db, col, id));
     toast('🗑️ Data berhasil dihapus!');

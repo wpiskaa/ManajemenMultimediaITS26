@@ -28,16 +28,19 @@ const SUBDIV_COLORS = {
 };
 
 /* ─── STATE ─── */
-let members = [];
-let events = [];
-let tasks = [];
-let announcements = [];
-let notes = [];
+let members = [], events = [], tasks = [], announcements = [], notes = [], portfolio = [];
 
 /* ─── INITIALIZATION ─── */
 function init() {
   try {
-    initRealtime();
+    // Check Portal Auth
+  if(document.getElementById('portalLoginOverlay')) {
+    if(sessionStorage.getItem('portalAuth') === 'true') {
+      document.getElementById('portalLoginOverlay').style.display = 'none';
+    }
+  }
+
+  initRealtime();
   } catch (err) {
     console.error("Firebase Init Error:", err);
   }
@@ -72,6 +75,12 @@ function initRealtime() {
   onSnapshot(collection(db, "notes"), snap => {
     notes = snap.docs.map(d => ({id: d.id, ...d.data()}));
     renderNotes();
+  });
+  onSnapshot(collection(db, "siteContent"), snap => {
+    portfolio = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderGallery();
+    renderVideos();
+    renderMusic();
   });
 }
 
@@ -563,6 +572,69 @@ window.showNoteDetail = function(id) {
   if(modal) modal.classList.add('open');
 };
 
+function renderGallery() {
+  const grid = document.getElementById('galleryGrid');
+  if(!grid) return;
+  const items = portfolio.filter(p => p.category === 'gallery');
+  if(!items.length) {
+    grid.innerHTML = '<p style="color:var(--text3); font-size:13px; grid-column:1/-1; text-align:center;">Belum ada foto.</p>';
+    return;
+  }
+  grid.innerHTML = items.map(p => `
+    <div class="gallery-item" title="${p.title}" onclick="openImage('${p.url}', '${p.title}')">
+      <img src="${p.url}" alt="${p.title}" onerror="this.src='https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=300'">
+    </div>
+  `).join('');
+}
+
+function renderVideos() {
+  const grid = document.getElementById('videoGrid');
+  if(!grid) return;
+  const items = portfolio.filter(p => p.category === 'video');
+  if(!items.length) {
+    grid.innerHTML = '<p style="color:var(--text3); font-size:13px; grid-column:1/-1; text-align:center;">Belum ada video.</p>';
+    return;
+  }
+  grid.innerHTML = items.map((p, i) => `
+    <div class="video-card animate-on-scroll" style="--i:${i}" onclick="playVideo('${p.url}', '${p.title}')">
+      <div class="video-thumb">
+        <img src="${p.cover || 'assets/malang_cover.png'}" alt="${p.title}" onerror="this.src='https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=400'">
+        <div class="video-play-overlay">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+      </div>
+      <div class="video-info">
+        <h3 class="video-title">${p.title}</h3>
+        <p class="video-category">${p.extra || 'Motion Work'}</p>
+      </div>
+    </div>
+  `).join('');
+  observeAnimations();
+}
+
+function renderMusic() {
+  const grid = document.getElementById('musicGrid');
+  if(!grid) return;
+  const items = portfolio.filter(p => p.category === 'music');
+  if(!items.length) {
+    grid.innerHTML = '<p style="color:var(--text3); font-size:13px; grid-column:1/-1; text-align:center;">Belum ada lagu.</p>';
+    return;
+  }
+  grid.innerHTML = items.map((p, i) => `
+    <div class="music-card animate-on-scroll" style="--i:${i}" onclick="playMusic('${p.url}', '${p.title}', '${p.extra || 'Unknown Artist'}', '${p.cover || ''}')">
+      <div class="music-cover">
+        <img src="${p.cover}" alt="${p.title}" onerror="this.src='https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=200'">
+        <div class="music-play-btn"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+      </div>
+      <div class="music-info">
+        <h3 class="music-track">${p.title}</h3>
+        <p class="music-artist">${p.extra || 'Unknown Artist'}</p>
+      </div>
+    </div>
+  `).join('');
+  observeAnimations();
+}
+
 function observeAnimations() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); } });
@@ -590,6 +662,82 @@ function setupParticles() {
 
 const modalOverlay = document.getElementById('taskModal');
 if(modalOverlay) modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) window.closeTaskModal(); });
+
+/* ─── PORTAL LOGIN ─── */
+window.doPortalLogin = function() {
+  const pass = document.getElementById('portalPass').value;
+  const error = document.getElementById('portalLoginError');
+  const overlay = document.getElementById('portalLoginOverlay');
+
+  if (pass === 'pdd123') {
+    sessionStorage.setItem('portalAuth', 'true');
+    overlay.classList.add('hidden');
+    setTimeout(() => {
+      overlay.style.display = 'none';
+    }, 800);
+  } else {
+    error.textContent = 'Password salah! Silakan coba lagi.';
+    document.getElementById('portalPass').value = '';
+    setTimeout(() => { error.textContent = ''; }, 3000);
+  }
+};
+
+/* ─── MEDIA HANDLERS ─── */
+window.playVideo = function(src, title) {
+  const modal = document.getElementById('videoModal');
+  const video = document.getElementById('mainVideo');
+  if(modal && video) {
+    modal.classList.add('open');
+    
+    // Gunakan encodeURI untuk menangani karakter khusus jika ada
+    const encodedSrc = encodeURI(src);
+    
+    // Hentikan video sebelumnya
+    video.pause();
+    
+    // Set src secara langsung
+    video.src = encodedSrc;
+    video.preload = "metadata"; // Bantu browser baca ukuran file besar
+    
+    // Load dan Play dengan sedikit delay untuk stabilitas file besar
+    video.load();
+    
+    setTimeout(() => {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => console.warn("Playback blocked:", error));
+      }
+    }, 100);
+
+    // Penanganan error yang lebih spesifik
+    video.onerror = function() {
+      // Jika src kosong (saat modal ditutup), abaikan
+      if(!video.src || video.src.endsWith('null') || video.src === window.location.href) return;
+      
+      alert(`Gagal memuat video: ${src}\n\nTips:\n1. Pastikan file ${src} benar-benar ada di folder assets.\n2. Coba ganti browser (Gunakan Chrome/Edge).\n3. Pastikan tidak ada aplikasi lain yang sedang mengunci file tersebut.`);
+      window.closeVideoModal();
+    };
+  }
+};
+
+window.closeVideoModal = function() {
+  const modal = document.getElementById('videoModal');
+  const video = document.getElementById('mainVideo');
+  if(modal) modal.classList.remove('open');
+  if(video) { video.pause(); video.src = ""; video.innerHTML = ""; }
+};
+
+window.openImage = function(src, caption) {
+  const modal = document.getElementById('imageModal');
+  const img = document.getElementById('modalImg');
+  const cap = document.getElementById('modalCaption');
+  if(modal && img) { img.src = src; if(cap) cap.textContent = caption; modal.classList.add('open'); }
+};
+
+window.closeImageModal = function() {
+  const modal = document.getElementById('imageModal');
+  if(modal) modal.classList.remove('open');
+};
 
 
 

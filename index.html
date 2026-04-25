@@ -253,7 +253,7 @@
     </div>
 
     <div class="video-grid">
-      <div class="video-card animate-on-scroll" onclick="playVideo('https://drive.google.com/uc?export=download&id=1G_Ja8EU9aAsy91h18maRjZQeELOXCI8C', 'Malang Adventure')">
+      <div class="video-card animate-on-scroll" onclick="playVideo('assets/MALANG ADVANTURE.mp4', 'Malang Adventure')">
         <div class="video-thumb">
           <img src="assets/malang_cover.png" alt="Malang Adventure">
           <div class="video-play-overlay">
@@ -265,9 +265,9 @@
           <p class="video-category">Personal Vlog</p>
         </div>
       </div>
-      <div class="video-card animate-on-scroll" style="--i:1" onclick="playVideo('https://drive.google.com/uc?export=download&id=1c1paF3MsEL8-rG6ic-wfPvnfkwSTioGh', 'Cincin - Hindia')">
+      <div class="video-card animate-on-scroll" style="--i:1" onclick="playVideo('assets/cincin_piska.mp4', 'Cincin - Hindia')">
         <div class="video-thumb">
-          <img src="assets/cincin_cover.jpg" alt="Cincin Hindia">
+          <img src="assets/cover_cincin.png" alt="Cincin Hindia">
           <div class="video-play-overlay">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           </div>
@@ -394,54 +394,11 @@
 </div>
 
 <script>
-  // UI Logic for Media
-  window.playVideo = function(src, title) {
-    const modal = document.getElementById('videoModal');
-    const video = document.getElementById('mainVideo');
-    if(modal && video) {
-      video.src = src;
-      modal.classList.add('open');
-      video.play().catch(e => {
-        alert(`Video "${src}" tidak ditemukan. Pastikan file sudah ada di folder assets!`);
-        closeVideoModal();
-      });
-      
-      video.onerror = function() {
-        alert(`Gagal memuat video: ${src}`);
-        closeVideoModal();
-      };
-    }
-  };
-  window.closeVideoModal = function() {
-    const modal = document.getElementById('videoModal');
-    const video = document.getElementById('mainVideo');
-    if(modal) modal.classList.remove('open');
-    if(video) {
-      video.pause();
-      video.src = "";
-    }
-  };
-
-  window.openImage = function(src, caption) {
-    const modal = document.getElementById('imageModal');
-    const img = document.getElementById('modalImg');
-    const cap = document.getElementById('modalCaption');
-    if(modal && img) {
-      img.src = src;
-      cap.textContent = caption;
-      modal.classList.add('open');
-    }
-  };
-  window.closeImageModal = function() {
-    const modal = document.getElementById('imageModal');
-    if(modal) modal.classList.remove('open');
-  };
-
   // Keyboard Support
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape') {
-      closeVideoModal();
-      closeImageModal();
+      if(typeof closeVideoModal === 'function') closeVideoModal();
+      if(typeof closeImageModal === 'function') closeImageModal();
       if(typeof hidePlayer === 'function') hidePlayer();
     }
   });

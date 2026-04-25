@@ -9,6 +9,30 @@
 </head>
 <body>
 
+<!-- PORTAL LOGIN OVERLAY -->
+<div class="portal-login-overlay" id="portalLoginOverlay">
+  <div class="aurora-bg">
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+  </div>
+  <div class="login-content">
+    <div class="login-logo">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    </div>
+    <h2 class="login-title">Akses Terbatas</h2>
+    <p class="login-sub">Masukkan password untuk masuk ke Portal Multimedia</p>
+    
+    <div class="login-input-group">
+      <label class="login-label">Password Portal</label>
+      <input type="password" class="login-input" id="portalPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doPortalLogin()">
+    </div>
+    
+    <div class="login-error" id="portalLoginError"></div>
+    
+    <button class="btn-portal-enter" onclick="doPortalLogin()">Masuk ke Portal</button>
+  </div>
+</div>
+
 <!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="nav-container">
