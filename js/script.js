@@ -197,7 +197,8 @@ function renderEvents() {
   const today = new Date().toISOString().slice(0,10);
   let filtered = [...events];
   
-  if(currentEventFilter === 'upcoming') filtered = events.filter(e => e.date > today);
+  if(currentEventFilter === 'all') filtered = events.filter(e => e.date >= today);
+  else if(currentEventFilter === 'upcoming') filtered = events.filter(e => e.date > today);
   else if(currentEventFilter === 'today') filtered = events.filter(e => e.date === today);
   else if(currentEventFilter === 'past') filtered = events.filter(e => e.date < today);
 
