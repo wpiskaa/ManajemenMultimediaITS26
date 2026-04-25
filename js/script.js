@@ -290,12 +290,18 @@ window.showTaskDetail = function(id) {
   if(document.getElementById('m-title')) document.getElementById('m-title').textContent = t.title;
   if(document.getElementById('m-desc')) document.getElementById('m-desc').textContent = t.description || 'No description.';
   if(document.getElementById('m-due')) document.getElementById('m-due').textContent = t.dueDate || 'TBA';
+  if(document.getElementById('m-date-label')) document.getElementById('m-date-label').textContent = 'Deadline';
   
-  // Show task-specific fields
+  // Visibility
   const dueSection = document.getElementById('m-due')?.parentElement;
+  const locSection = document.getElementById('m-location-section');
   const assignSection = document.getElementById('m-assignees-section');
+  const evSection = document.getElementById('m-event-section');
+  
   if(dueSection) dueSection.style.display = 'block';
+  if(locSection) locSection.style.display = 'none';
   if(assignSection) assignSection.style.display = 'block';
+  if(evSection) evSection.style.display = 'block';
 
   const modal = document.getElementById('taskModal');
   if(modal) modal.classList.add('open');
@@ -305,12 +311,20 @@ window.showEventDetail = function(id) {
   const e = events.find(x=>x.id===id); if(!e) return;
   if(document.getElementById('m-title')) document.getElementById('m-title').textContent = e.title;
   if(document.getElementById('m-desc')) document.getElementById('m-desc').textContent = e.description || 'No description.';
-  
-  // Hide task-specific fields
+  if(document.getElementById('m-due')) document.getElementById('m-due').textContent = `${e.date} · ${e.time || 'TBA'}`;
+  if(document.getElementById('m-location')) document.getElementById('m-location').textContent = e.location || 'TBA';
+  if(document.getElementById('m-date-label')) document.getElementById('m-date-label').textContent = 'Waktu & Tanggal';
+
+  // Visibility
   const dueSection = document.getElementById('m-due')?.parentElement;
+  const locSection = document.getElementById('m-location-section');
   const assignSection = document.getElementById('m-assignees-section');
-  if(dueSection) dueSection.style.display = 'none';
+  const evSection = document.getElementById('m-event-section');
+
+  if(dueSection) dueSection.style.display = 'block';
+  if(locSection) locSection.style.display = 'block';
   if(assignSection) assignSection.style.display = 'none';
+  if(evSection) evSection.style.display = 'none';
 
   const modal = document.getElementById('taskModal');
   if(modal) modal.classList.add('open');
@@ -320,12 +334,20 @@ window.showAnnDetail = function(id) {
   const a = announcements.find(x=>x.id===id); if(!a) return;
   if(document.getElementById('m-title')) document.getElementById('m-title').textContent = a.title;
   if(document.getElementById('m-desc')) document.getElementById('m-desc').textContent = a.content || 'No content.';
-  
-  // Hide task-specific fields
+  if(document.getElementById('m-due')) document.getElementById('m-due').textContent = `${a.date} · ${a.time || 'TBA'}`;
+  if(document.getElementById('m-location')) document.getElementById('m-location').textContent = a.location || 'TBA';
+  if(document.getElementById('m-date-label')) document.getElementById('m-date-label').textContent = 'Waktu & Tanggal';
+
+  // Visibility
   const dueSection = document.getElementById('m-due')?.parentElement;
+  const locSection = document.getElementById('m-location-section');
   const assignSection = document.getElementById('m-assignees-section');
-  if(dueSection) dueSection.style.display = 'none';
+  const evSection = document.getElementById('m-event-section');
+
+  if(dueSection) dueSection.style.display = 'block';
+  if(locSection) locSection.style.display = a.location ? 'block' : 'none';
   if(assignSection) assignSection.style.display = 'none';
+  if(evSection) evSection.style.display = 'none';
 
   const modal = document.getElementById('taskModal');
   if(modal) modal.classList.add('open');
@@ -358,7 +380,19 @@ function renderTeam() {
 function renderAnnouncements() {
   const list = document.getElementById('annList');
   if (!list || !announcements.length) return;
-  list.innerHTML = announcements.map(a => `<div class="ann-card animate-on-scroll" onclick="showAnnDetail('${a.id}')"><div class="ann-content"><h3 class="ann-title">${a.title}</h3><p class="ann-text">${a.content.substring(0,80)}...</p></div></div>`).join('');
+  list.innerHTML = announcements.map(a => {
+    const isHigh = a.priority === 'high';
+    return `<div class="ann-card animate-on-scroll" onclick="showAnnDetail('${a.id}')">
+      <div class="ann-content">
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
+          <h3 class="ann-title" style="margin:0;">${a.title}</h3>
+          ${isHigh ? '<span class="status-badge sb-inprogress" style="font-size:9px; padding:2px 8px;">Penting</span>' : ''}
+        </div>
+        <p class="ann-text">${a.content.substring(0,80)}...</p>
+        <div class="ann-date" style="margin-top:10px; font-size:11px; opacity:0.6;">📅 ${a.date}</div>
+      </div>
+    </div>`;
+  }).join('');
   observeAnimations();
 }
 
