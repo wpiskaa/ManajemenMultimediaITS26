@@ -344,6 +344,115 @@ a { text-decoration:none; color:inherit; }
   .login-card { padding: 32px 24px; }
   .login-title { font-size: 22px; }
 }
-  .login-card { padding: 32px 24px; }
-  .login-title { font-size: 22px; }
+
+/* ══════════════════════════════════════════
+   ADMIN UI ENHANCEMENTS
+══════════════════════════════════════════ */
+
+/* ── SIDEBAR GRADIENT ACCENT ── */
+.admin-sidebar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 200px;
+  background: linear-gradient(0deg, rgba(124,58,237,0.08), transparent);
+  pointer-events: none;
+}
+.admin-sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar-link.active {
+  box-shadow: inset 3px 0 0 var(--purple-l);
+}
+
+/* ── ENHANCED STAT CARDS ── */
+.admin-stat-card {
+  position: relative; overflow: hidden;
+  transition: var(--t);
+}
+.admin-stat-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at top right, rgba(124,58,237,0.06), transparent 65%);
+  opacity: 0; transition: opacity 0.4s;
+}
+.admin-stat-card:hover::before { opacity: 1; }
+.admin-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  border-color: var(--border-hover);
+}
+.asc-num {
+  background: linear-gradient(135deg, #fff, rgba(148,163,184,0.8));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── ENHANCED TABLE ROWS ── */
+.data-table tr:hover td {
+  background: rgba(124,58,237,0.04);
+}
+.data-table tbody tr {
+  transition: background 0.2s;
+}
+
+/* ── ENHANCED MODAL ── */
+.modal-box {
+  border: 1px solid rgba(124,58,237,0.2);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.08);
+}
+
+/* ── ENHANCED TOPBAR ── */
+.admin-topbar {
+  border-bottom: 1px solid var(--border);
+  background: rgba(5,5,15,0.9);
+}
+.topbar-title h1 {
+  background: linear-gradient(135deg, #fff, rgba(148,163,184,0.8));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── ENHANCED TOAST ── */
+.toast {
+  background: linear-gradient(135deg, rgba(124,58,237,0.95), rgba(219,39,119,0.9));
+  box-shadow: 0 10px 30px rgba(124,58,237,0.3);
+}
+
+/* ── ENHANCED SAVE BUTTON ── */
+.btn-save:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(124,58,237,0.3);
+}
+
+/* ── ENHANCED LOGIN CARD ── */
+.login-card {
+  box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.1);
+}
+
+/* ── ENHANCED FORM INPUTS ── */
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+}
+
+/* ── NO-DATA TABLE ROWS ── */
+.table-empty {
+  background: rgba(255,255,255,0.01);
+}
+
+/* ── BADGE IMPROVEMENTS ── */
+.sb-inprogress { box-shadow: 0 0 8px rgba(245,158,11,0.15); }
+.sb-done { box-shadow: 0 0 8px rgba(16,185,129,0.15); }
+.priority-hi { box-shadow: 0 0 8px rgba(239,68,68,0.15); }
+
+/* ── DASHBOARD SECTIONS ── */
+#dashEvents > div, #dashTasks > div {
+  transition: all 0.25s;
+}
+#dashEvents > div:hover, #dashTasks > div:hover {
+  border-color: rgba(124,58,237,0.25) !important;
+  background: rgba(124,58,237,0.04) !important;
+  transform: translateX(4px);
 }

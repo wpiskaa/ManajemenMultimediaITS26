@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getFirestore, collection, doc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, 
-  onSnapshot, query, orderBy, limit, serverTimestamp 
+import {
+  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 /* ─── FIREBASE CONFIG ─── */
@@ -61,6 +60,7 @@ const PANEL_INFO = {
   members:{title:'Anggota Tim',sub:'Kelola daftar anggota divisi'},
   announcements:{title:'Pengumuman',sub:'Kelola info dan pengumuman'},
   notes:{title:'Notulensi Rapat',sub:'Kelola catatan hasil rapat divisi'},
+  portfolio:{title:'Manajemen Konten',sub:'Kelola galeri, video, dan musik untuk halaman utama'},
   data:{title:'Manajemen Data',sub:'Ekspor, impor, dan reset data website'}
 };
 window.showPanel = function(name, btn) {
@@ -315,7 +315,7 @@ let currentModalType='', currentEditId=null;
 window.openModal = function(type, editId=null) {
   currentModalType=type; currentEditId=editId;
   const overlay=document.getElementById('modalOverlay');
-  const titles={event:editId?'Edit Event':'Tambah Event',task:editId?'Edit Tugas':'Tambah Tugas',member:editId?'Edit Anggota':'Tambah Anggota',announcement:editId?'Edit Pengumuman':'Tambah Pengumuman',note:editId?'Edit Notulensi':'Tambah Notulensi'};
+  const titles={event:editId?'Edit Event':'Tambah Event',task:editId?'Edit Tugas':'Tambah Tugas',member:editId?'Edit Anggota':'Tambah Anggota',announcement:editId?'Edit Pengumuman':'Tambah Pengumuman',note:editId?'Edit Notulensi':'Tambah Notulensi',portfolio:editId?'Edit Konten':'Tambah Konten'};
   document.getElementById('modalTitle').textContent=titles[type];
   document.getElementById('modalBody').innerHTML=buildForm(type,editId);
   overlay.classList.add('open');
@@ -401,6 +401,7 @@ function buildForm(type,editId) {
       <div class="form-group"><label class="form-label">Tanggal *</label><input type="date" class="form-input" id="f-date" value="${n.date||new Date().toISOString().slice(0,10)}"></div>
       <div class="form-group"><label class="form-label">Topik Utama</label><input class="form-input" id="f-topic" value="${n.topic||''}"></div>
       <div class="form-group"><label class="form-label">Isi Notulensi *</label><textarea class="form-textarea" style="min-height:150px" id="f-content">${n.content||''}</textarea></div>`;
+  }
   if(type==='portfolio') {
     const p=editId?portfolio.find(x=>x.id===editId):{category:'video'};
     return `<div class="form-group"><label class="form-label">Kategori *</label><select class="form-select" id="f-category"><option value="video"${p.category==='video'?' selected':''}>Video Narratives</option><option value="music"${p.category==='music'?' selected':''}>Soundtrack (Music)</option><option value="gallery"${p.category==='gallery'?' selected':''}>Visual Journal (Gallery)</option></select></div>
@@ -415,7 +416,7 @@ function buildForm(type,editId) {
 async function saveModal(type, editId) {
   const btn = document.getElementById('btnSave');
   const g = id => { const e=document.getElementById(id); return e?e.value.trim():''; };
-  const collectionName = type==='member'?'members':type==='announcement'?'announcements':type==='note'?'notes':type+'s';
+  const collectionName = type==='member'?'members':type==='announcement'?'announcements':type==='note'?'notes':type==='portfolio'?'siteContent':type+'s';
   
   let item = {};
   if(type==='event') {

@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
   getFirestore, collection, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -14,8 +14,8 @@ const firebaseConfig = {
   measurementId: "G-YERNWESJD5"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase safely
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
 /* ─── CONSTANTS ─── */
@@ -33,54 +33,56 @@ let members = [], events = [], tasks = [], announcements = [], notes = [], portf
 /* ─── INITIALIZATION ─── */
 function init() {
   try {
-    // Check Portal Auth
-  if(document.getElementById('portalLoginOverlay')) {
-    if(sessionStorage.getItem('portalAuth') === 'true') {
-      document.getElementById('portalLoginOverlay').style.display = 'none';
+    const overlay = document.getElementById('portalLoginOverlay');
+    if(overlay) {
+      if(sessionStorage.getItem('portalAuth') === 'true') {
+        overlay.classList.add('hidden');
+        setTimeout(() => { overlay.style.display = 'none'; }, 50);
+      }
     }
-  }
-
-  initRealtime();
+    initRealtime();
   } catch (err) {
-    console.error("Firebase Init Error:", err);
+    console.warn("Init notice:", err.message);
   }
-  setupNavbar();
-  setupHeroTyping();
-  setupParticles();
+  
+  if (document.getElementById('navbar')) setupNavbar();
+  if (document.querySelector('.hero-typing')) setupHeroTyping();
+  if (document.getElementById('particleCanvas') && !window.location.pathname.includes('game.html')) setupParticles();
   setupScrollObserver();
-  setupQuoteRotator();
+  if (document.querySelector('.quote-container')) setupQuoteRotator();
+  observeAnimations();
 }
 
 function initRealtime() {
   onSnapshot(collection(db, "members"), snap => {
     members = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderTeam();
+    if (typeof renderTeam === 'function') renderTeam();
     updateStats();
   });
   onSnapshot(collection(db, "events"), snap => {
     events = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderEvents();
+    if (typeof renderEvents === 'function') renderEvents();
     updateStats();
   });
   onSnapshot(collection(db, "tasks"), snap => {
     tasks = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderTasks();
-    renderSubdivOverview();
+    if (typeof renderTasks === 'function') renderTasks();
+    if (typeof renderSubdivOverview === 'function') renderSubdivOverview();
     updateStats();
   });
   onSnapshot(collection(db, "announcements"), snap => {
     announcements = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderAnnouncements();
+    if (typeof renderAnnouncements === 'function') renderAnnouncements();
   });
   onSnapshot(collection(db, "notes"), snap => {
     notes = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderNotes();
+    if (typeof renderNotes === 'function') renderNotes();
   });
   onSnapshot(collection(db, "siteContent"), snap => {
     portfolio = snap.docs.map(d => ({id: d.id, ...d.data()}));
-    renderGallery();
-    renderVideos();
-    renderMusic();
+    if (typeof renderGallery === 'function') renderGallery();
+    if (typeof renderVideos === 'function') renderVideos();
+    if (typeof renderMusic === 'function') renderMusic();
   });
 }
 
@@ -173,21 +175,32 @@ function setupQuoteRotator() {
   }, 6000);
 }
 
+function animateCounter(id, target) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = parseInt(el.textContent) || 0;
+  if (start === target) return;
+  const duration = 600;
+  const startTime = performance.now();
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(start + (target - start) * ease);
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 function updateStats() {
   const today = new Date().toISOString().slice(0,10);
   const upCount = events.filter(e => e.date >= today).length;
   const doneCount = tasks.filter(t => t.status === 'done').length;
   const activeCount = tasks.filter(t => t.status !== 'done').length;
-  
-  const elUp = document.getElementById('statEvents');
-  const elDone = document.getElementById('statDone');
-  const elMem = document.getElementById('statMembers');
-  const elActive = document.getElementById('statActive');
-  
-  if(elUp) elUp.textContent = upCount;
-  if(elDone) elDone.textContent = doneCount;
-  if(elMem) elMem.textContent = members.length || 0;
-  if(elActive) elActive.textContent = activeCount;
+
+  animateCounter('statEvents', upCount);
+  animateCounter('statDone', doneCount);
+  animateCounter('statMembers', members.length || 0);
+  animateCounter('statActive', activeCount);
 }
 
 /* ─── RENDER EVENTS ─── */
@@ -739,7 +752,7 @@ window.closeImageModal = function() {
   if(modal) modal.classList.remove('open');
 };
 
-
-
 // Global initialization
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+});
