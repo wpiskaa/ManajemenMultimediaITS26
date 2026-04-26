@@ -85,7 +85,7 @@
     }
 
     .grid {
-      display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;
+      display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px;
       background: rgba(255,255,255,0.02); padding: 20px; border-radius: 28px;
       width: 100%; aspect-ratio: 1/1; border: 1px solid var(--glass-border);
       box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.02);
@@ -247,7 +247,7 @@
     <div class="lobby-form">
       <div class="section-badge" style="margin-bottom:20px; color: var(--purple-l); background: rgba(124,58,237,0.1); border: 1px solid var(--purple); padding: 6px 16px; border-radius: 100px; display: inline-block; font-size: 11px; font-weight: 800; align-self: center;">Piska Developer</div>
       <h2 style="margin: 10px 0; font-size: 42px; font-weight: 900; letter-spacing: -1px;">Block Master</h2>
-      <p style="color:var(--text2); font-size:16px; margin-bottom:40px; opacity: 0.8;">Asah strategimu dan taklukkan grid 6x6!</p>
+      <p style="color:var(--text2); font-size:16px; margin-bottom:40px; opacity: 0.8;">Asah strategimu dan taklukkan grid 8x8!</p>
       
       <div style="margin-bottom:32px; text-align:left;">
         <label style="font-size:11px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing: 2px; margin-left:4px; opacity: 0.6;">Nama Player</label>
@@ -469,7 +469,7 @@
   }
 
   // --- GAME LOGIC ---
-  const GRID_SIZE = 6;
+  const GRID_SIZE = 8;
   const PIECE_TIERS = {
     easy: [
       {p:[[1]],c:'#4f46e5'}, {p:[[1,1]],c:'#e11d48'}, {p:[[1],[1]],c:'#e11d48'}, 
@@ -482,7 +482,7 @@
     ],
     hard: [
       {p:[[1,1,1],[0,0,1]],c:'#dc2626'}, {p:[[1,1,1],[0,1,0],[0,1,0]],c:'#d97706'},
-      {p:[[1,1,1,1]],c:'#10b981'}, {p:[[1,1,1],[1,1,1],[1,1,1]],c:'#ffffff'}
+      {p:[[1,1,1,1]],c:'#10b981'}, {p:[[0,1,0],[1,1,1],[0,1,0]],c:'#ffffff'}
     ]
   };
 
@@ -521,7 +521,7 @@
   function spawnPieces() {
     currentPieces = [];
     document.getElementById('piecesRow').innerHTML = '';
-    let tier = score < 800 ? 'easy' : (score < 2500 ? 'medium' : 'hard');
+    let tier = score < 1500 ? 'easy' : (score < 4000 ? 'medium' : 'hard');
     const pool = PIECE_TIERS[tier];
     for(let i=0; i<3; i++) {
       const pData = JSON.parse(JSON.stringify(pool[Math.floor(Math.random() * pool.length)]));
