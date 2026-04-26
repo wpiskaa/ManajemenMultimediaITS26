@@ -105,9 +105,16 @@
 }
 
 @media (max-width: 1000px) {
-  .psk-hero-inner { flex-direction: column; gap: 60px; text-align: center; }
+  .psk-hero { padding-top: 120px; }
+  .psk-hero-inner { flex-direction: column-reverse; gap: 48px; text-align: center; }
   .psk-hero-text { text-align: center; display: flex; flex-direction: column; align-items: center; }
   .psk-hero-text .hero-actions { justify-content: center; }
+  .psk-hero-text .psk-skills { justify-content: center; }
+  .psk-photo-container { width: 280px; height: 280px; }
+  .glass-float { scale: 0.85; }
+  .gf-1 { right: -20px; }
+  .gf-2 { right: -30px; }
+  .gf-3 { left: -20px; }
 }
 
 .psk-hero-text {
@@ -242,6 +249,23 @@
   grid-template-columns: repeat(3, 1fr);
   grid-auto-rows: 155px;
   gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .psk-masonry {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 140px;
+  }
+}
+@media (max-width: 480px) {
+  .psk-masonry {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 200px;
+  }
+  .psk-masonry .gi-featured, .psk-masonry .gi-tall {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
 }
 
 /* Featured large items */
@@ -901,19 +925,16 @@
   .psk-hero-text .hero-desc { text-align: center; margin: 0 auto 32px; }
   .psk-hero-text .hero-actions { justify-content: center; }
   .psk-hero-text .psk-skills { justify-content: center; }
-  .psk-hero-photo { width: 240px; height: 260px; }
-  .psk-photo-wrap { width: 220px; height: 220px; }
-  .psk-float { display: none; }
+  
+  /* Already handled above but keeping for safety */
+  .psk-photo-container { width: 260px; height: 260px; }
+  .psk-hero-visual { margin-bottom: 20px; }
 
   .psk-gallery-wrap { grid-template-columns: 1fr; }
   .psk-about-grid { grid-template-columns: 1fr; }
   .psk-works-grid { grid-template-columns: 1fr; }
   .psk-video-grid { grid-template-columns: 1fr; }
   .psk-music-grid { grid-template-columns: repeat(2, 1fr); }
-
-  .psk-masonry { grid-template-columns: repeat(2, 1fr); }
-  .psk-masonry .gi-featured { grid-column: span 2; }
-  .psk-masonry .gi-tall { grid-row: span 1; }
 }
 
 @media(max-width: 480px) {
