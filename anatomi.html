@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tebak Anatomi - Spesial untuk Calon Dokter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-light: #60a5fa;
+      --secondary: #ec4899;
+      --bg-color: #f0fdfa; /* Soft cyan/mint background */
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Floating shapes for background */
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      z-index: -1;
+      animation: float 10s infinite alternate ease-in-out;
+    }
+    .shape-1 { width: 300px; height: 300px; background: rgba(59, 130, 246, 0.2); top: -10%; left: -10%; }
+    .shape-2 { width: 400px; height: 400px; background: rgba(236, 72, 153, 0.2); bottom: -10%; right: -10%; animation-delay: -5s; }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 50px) scale(1.1); }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 30px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .header {
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* Progress bar */
+    .progress-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 10px;
+      margin-bottom: 30px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      width: 0%;
+      border-radius: 10px;
+      transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Question area */
+    .question-box {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 30px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+
+    .option-btn {
+      background: white;
+      border: 2px solid #e2e8f0;
+      padding: 16px 20px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-btn:hover {
+      border-color: var(--primary-light);
+      background: #eff6ff;
+      transform: translateY(-2px);
+    }
+
+    .option-btn.correct {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+      animation: popCorrect 0.4s ease;
+    }
+
+    .option-btn.wrong {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: white;
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes popCorrect {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      75% { transform: translateX(-5px); }
+    }
+
+    /* Sweet message popup */
+    .sweet-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: white;
+      padding: 30px 40px;
+      border-radius: 24px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+      z-index: 1000;
+      text-align: center;
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .sweet-message.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    .sweet-message h3 {
+      color: var(--secondary);
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .sweet-message p {
+      color: var(--text-main);
+      font-size: 16px;
+    }
+
+    /* End Screen */
+    .end-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .heart-icon {
+      font-size: 60px;
+      color: var(--secondary);
+      margin-bottom: 20px;
+      animation: heartbeat 1.5s infinite;
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 100px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s;
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 25px rgba(59, 130, 246, 0.4);
+    }
+
+    .score-display {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--primary);
+      margin: 10px 0;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="shape shape-1"></div>
+  <div class="shape shape-2"></div>
+
+  <div class="container">
+    <div class="card" id="gameCard">
+      <!-- Start Screen -->
+      <div id="startScreen">
+        <div class="heart-icon">🩺</div>
+        <div class="header">
+          <h1>Tebak Anatomi</h1>
+          <p>Halo Calon Dokter hebat! ❤️<br>Yuk refresh ingatan anatomimu. Game ini khusus dibuat untuk nemenin kamu belajar dan biar kamu senyum hari ini!</p>
+        </div>
+        <button class="btn-primary" onclick="startGame()">Mulai Main</button>
+      </div>
+
+      <!-- Quiz Screen -->
+      <div id="quizScreen" style="display: none;">
+        <div class="progress-container">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; color: var(--text-muted); font-weight: 600;">
+          <span id="questionCount">Soal 1/10</span>
+          <span id="scoreText">Skor: 0</span>
+        </div>
+        <div class="question-box" id="questionText">
+          Pertanyaan akan muncul di sini?
+        </div>
+        <div class="options" id="optionsContainer">
+          <!-- Options will be injected here -->
+        </div>
+      </div>
+
+      <!-- End Screen -->
+      <div id="endScreen" class="end-screen">
+        <div class="heart-icon">💖</div>
+        <h2>Yeay! Selesai!</h2>
+        <p style="color: var(--text-muted); margin-top: 10px;">Bangga banget sama kamu, semangat terus ya FK-nya!</p>
+        <div class="score-display" id="finalScore">100</div>
+        <p id="endMessage" style="font-weight: 600; font-size: 18px; margin-bottom: 20px;">Kamu luar biasa!</p>
+        <button class="btn-primary" onclick="location.reload()">Main Lagi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sweet messages popup container -->
+  <div class="sweet-message" id="sweetMessage">
+    <h3 id="sweetTitle">Pintar!</h3>
+    <p id="sweetText">Kamu memang calon dokter yang hebat!</p>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "Tulang terpanjang dan terkuat di tubuh manusia adalah...",
+        options: ["Os Humerus", "Os Femur", "Os Tibia", "Os Radius"],
+        correct: 1
+      },
+      {
+        question: "Bagian dari jantung yang berfungsi memompa darah kaya oksigen ke seluruh tubuh adalah...",
+        options: ["Atrium Kanan", "Atrium Kiri", "Ventrikel Kanan", "Ventrikel Kiri"],
+        correct: 3
+      },
+      {
+        question: "Kelenjar yang disebut sebagai 'Master of Glands' karena mengatur kelenjar endokrin lain adalah...",
+        options: ["Kelenjar Tiroid", "Kelenjar Adrenal", "Kelenjar Pituitari (Hipofisis)", "Pankreas"],
+        correct: 2
+      },
+      {
+        question: "Tulang pipih di tengah dada tempat melekatnya tulang rusuk disebut...",
+        options: ["Os Sternum", "Os Clavicula", "Os Scapula", "Os Ilium"],
+        correct: 0
+      },
+      {
+        question: "Saraf kranial ke-X yang memanjang hingga ke organ-organ dalam perut adalah...",
+        options: ["Nervus Trigeminus", "Nervus Facialis", "Nervus Vagus", "Nervus Opticus"],
+        correct: 2
+      },
+      {
+        question: "Organ utama yang bertanggung jawab menyaring racun dan memproduksi empedu adalah...",
+        options: ["Gaster (Lambung)", "Hepar (Hati)", "Ren (Ginjal)", "Lien (Limpa)"],
+        correct: 1
+      },
+      {
+        question: "Otot yang memisahkan rongga dada dan rongga perut serta berperan utama dalam pernapasan adalah...",
+        options: ["Otot Interkostal", "Diafragma", "Otot Rektus Abdominis", "Otot Pektoralis"],
+        correct: 1
+      },
+      {
+        question: "Pembuluh darah yang membawa darah KAYA oksigen dari paru-paru kembali ke jantung disebut...",
+        options: ["Arteri Pulmonalis", "Vena Cava Superior", "Aorta", "Vena Pulmonalis"],
+        correct: 3
+      }
+    ];
+
+    const sweetMessages = [
+      "Wah, calon dokter idaman banget! 😍",
+      "Keren! Nggak salah deh kagum sama kamu.",
+      "Pintar banget! Pasienmu nanti pasti beruntung punya dokter kaya kamu.",
+      "Semangat belajarnya ya! Aku selalu dukung kamu. ❤️",
+      "Satu langkah lebih dekat jadi dokter hebat!",
+      "Ihh jago banget anatominya! Makin sayang deh."
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let canClick = true;
+
+    const startScreen = document.getElementById('startScreen');
+    const quizScreen = document.getElementById('quizScreen');
+    const endScreen = document.getElementById('endScreen');
+    const questionText = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const progressBar = document.getElementById('progressBar');
+    const questionCount = document.getElementById('questionCount');
+    const scoreText = document.getElementById('scoreText');
+    const sweetMessage = document.getElementById('sweetMessage');
+
+    function startGame() {
+      startScreen.style.display = 'none';
+      quizScreen.style.display = 'block';
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      canClick = true;
+      const q = quizData[currentQuestion];
+      questionText.textContent = q.question;
+      questionCount.textContent = `Soal ${currentQuestion + 1} dari ${quizData.length}`;
+      
+      // Update progress
+      const progress = ((currentQuestion) / quizData.length) * 100;
+      progressBar.style.width = `${progress}%`;
+
+      optionsContainer.innerHTML = '';
+      q.options.forEach((opt, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(index, btn);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+      if (!canClick) return;
+      canClick = false;
+
+      const correctIndex = quizData[currentQuestion].correct;
+      const allBtns = optionsContainer.querySelectorAll('.option-btn');
+
+      if (selectedIndex === correctIndex) {
+        btnElement.classList.add('correct');
+        score += 10;
+        scoreText.textContent = `Skor: ${score}`;
+        
+        // Show random sweet message sometimes (30% chance or on first correct)
+        if (currentQuestion === 0 || Math.random() < 0.4) {
+          showSweetMessage();
+        }
+      } else {
+        btnElement.classList.add('wrong');
+        allBtns[correctIndex].classList.add('correct');
+      }
+
+      setTimeout(() => {
+        currentQuestion++;
+        if (currentQuestion < quizData.length) {
+          loadQuestion();
+        } else {
+          showEndScreen();
+        }
+      }, 1500);
+    }
+
+    function showSweetMessage() {
+      const msg = sweetMessages[Math.floor(Math.random() * sweetMessages.length)];
+      document.getElementById('sweetText').textContent = msg;
+      
+      sweetMessage.classList.add('show');
+      setTimeout(() => {
+        sweetMessage.classList.remove('show');
+      }, 2000);
+    }
+
+    function showEndScreen() {
+      quizScreen.style.display = 'none';
+      endScreen.style.display = 'flex';
+      
+      progressBar.style.width = '100%';
+      document.getElementById('finalScore').textContent = score;
+
+      const endMsg = document.getElementById('endMessage');
+      if (score === quizData.length * 10) {
+        endMsg.textContent = "Sempurna! Fix jadi dokter spesialis idaman! 🩺👨‍⚕️👩‍⚕️";
+      } else if (score >= (quizData.length * 10) / 2) {
+        endMsg.textContent = "Hebat banget! Sedikit lagi menuju sempurna. Semangat FK-nya! ❤️";
+      } else {
+        endMsg.textContent = "Nggak apa-apa, yang penting proses belajarnya. Aku tetep bangga! 🥰";
+      }
+    }
+  </script>
+</body>
+</html>
