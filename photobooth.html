@@ -504,9 +504,9 @@
               for (let px = x0; px < x1; px++) {
                 const idx = (py * W + px) * 4;
                 const r = framePx[idx], g = framePx[idx+1], b = framePx[idx+2], a = framePx[idx+3];
-                // Anggap piksel "gelap" jika brightness < 40 atau alpha kecil
+                // Anggap piksel "gelap" jika brightness < 80 atau alpha kecil
                 const brightness = (r + g + b) / 3;
-                if (brightness < 45 || a < 200) {
+                if (brightness < 80 || a < 200) {
                   framePx[idx]   = photoPx[idx];
                   framePx[idx+1] = photoPx[idx+1];
                   framePx[idx+2] = photoPx[idx+2];
