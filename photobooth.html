@@ -137,6 +137,47 @@
     #fileInput { display: none; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- gif.js untuk export GIF animasi -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+
+  <style>
+    /* GIF Progress Modal */
+    .gif-modal {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(12px);
+      display: none; align-items: center; justify-content: center;
+    }
+    .gif-modal.show { display: flex; }
+    .gif-modal-box {
+      background: #0d0d22; border: 1px solid rgba(124,58,237,0.4);
+      border-radius: 24px; padding: 40px 50px; text-align: center;
+      min-width: 340px; box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+    }
+    .gif-modal-icon { font-size: 48px; margin-bottom: 16px; animation: spin 1.5s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .gif-progress-bar {
+      width: 100%; height: 10px; background: rgba(255,255,255,0.1);
+      border-radius: 10px; overflow: hidden; margin: 18px 0 10px;
+    }
+    .gif-progress-fill {
+      height: 100%; width: 0%; transition: width 0.3s;
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+      border-radius: 10px;
+    }
+    .gif-progress-label { font-size: 13px; color: var(--text3); }
+    .btn-gif {
+      width: 100%; padding: 18px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: #fff; font-size: 17px; font-weight: 800; cursor: pointer;
+      transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+      box-shadow: 0 10px 20px rgba(239,68,68,0.3);
+      margin-top: 0;
+    }
+    .btn-gif:hover { transform: translateY(-2px); filter: brightness(1.1); }
+    .btn-gif:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    /* Hide GIF button when only 1 photo */
+    .gif-hidden { display: none !important; }
+  </style>
 </head>
 <body>
 
@@ -231,7 +272,11 @@
       <h2 style="font-size: clamp(24px, 5vw, 42px); font-weight: 900; line-height: 1.1; margin-bottom: 5px;">Momen Keren!</h2>
       <p style="color: var(--text2); font-size: 15px; margin-bottom: 15px; line-height: 1.5;">Strip foto kamu sudah siap dengan desain presisi dan estetik.</p>
       
-      <button class="btn-capture" id="btnDownload" style="padding: 22px; width: 100%;">Simpan ke Galeri</button>
+      <button class="btn-capture" id="btnDownload" style="padding: 22px; width: 100%;">📸 Simpan Foto (JPG)</button>
+      <button class="btn-gif" id="btnDownloadGIF" title="Ekspor sebagai GIF animasi">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Download GIF Animasi ✨
+      </button>
       <button class="btn-primary" id="btnQR" style="background:linear-gradient(135deg, #10b981, #059669); border:none; padding:22px; border-radius:14px; font-weight: 800; width: 100%; font-size: 17px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 5px;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Bikin QR Code (Download ke HP)
@@ -244,6 +289,19 @@
          <p id="qrHelp" style="color:#666; font-size:12px; margin-top:10px; display:none; text-align:center;">Scan QR ini dengan kamera HP-mu</p>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- GIF Progress Modal -->
+<div class="gif-modal" id="gifModal">
+  <div class="gif-modal-box">
+    <div class="gif-modal-icon">🎬</div>
+    <h3 style="font-size:22px; font-weight:800; color:#fff; margin-bottom:6px;">Membuat GIF Animasi</h3>
+    <p style="color:var(--text2); font-size:14px; margin-bottom:0;">Sabar ya, lagi nge-render frame satu per satu...</p>
+    <div class="gif-progress-bar">
+      <div class="gif-progress-fill" id="gifProgressFill"></div>
+    </div>
+    <div class="gif-progress-label" id="gifProgressLabel">0%</div>
   </div>
 </div>
 
@@ -603,6 +661,130 @@
   btnDownload.addEventListener('click', () => {
     const l = document.createElement('a'); l.download = `photobooth_${Date.now()}.jpg`;
     l.href = resultCanvas.toDataURL('image/jpeg', 0.98); l.click();
+  });
+
+  // ============================================================
+  // FITUR GIF ANIMASI
+  // Setiap foto dikompositkan ke dalam frame PNG yang sama,
+  // menghasilkan GIF animasi per foto (bukan slideshow statis).
+  // ============================================================
+  const btnDownloadGIF = document.getElementById('btnDownloadGIF');
+  const gifModal = document.getElementById('gifModal');
+  const gifProgressFill = document.getElementById('gifProgressFill');
+  const gifProgressLabel = document.getElementById('gifProgressLabel');
+
+  function renderFrameWithPhoto(frameImg, photoSrc, theme, boxIndex) {
+    return new Promise((resolve) => {
+      const W = resultCanvas.width, H = resultCanvas.height;
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = W; offCanvas.height = H;
+      const octx = offCanvas.getContext('2d');
+
+      const photoImg = new Image();
+      photoImg.onload = () => {
+        // Gambar frame dulu
+        octx.globalCompositeOperation = 'source-over';
+        octx.drawImage(frameImg, 0, 0, W, H);
+
+        if (theme.photoBoxes && theme.photoBoxes[boxIndex]) {
+          const { x, y, w: pw, h: ph, angle = 0 } = theme.photoBoxes[boxIndex];
+          octx.save();
+          octx.globalCompositeOperation = 'destination-over';
+          octx.translate(x + pw / 2, y + ph / 2);
+          octx.rotate(angle);
+          octx.translate(-pw / 2, -ph / 2);
+          drawImageCoverCtx(octx, photoImg, -10, -10, pw + 20, ph + 20);
+          octx.restore();
+        }
+
+        // Isi background paling bawah
+        octx.globalCompositeOperation = 'destination-over';
+        octx.fillStyle = theme.bg;
+        octx.fillRect(0, 0, W, H);
+        octx.globalCompositeOperation = 'source-over';
+
+        resolve(offCanvas);
+      };
+      photoImg.src = photoSrc;
+    });
+  }
+
+  btnDownloadGIF.addEventListener('click', async () => {
+    if (capturedPhotos.length === 0) return alert('Belum ada foto yang diambil!');
+    const theme = FRAME_CONFIG[currentFrame];
+    if (!theme || theme.type !== 'image') {
+      return alert('Fitur GIF hanya tersedia untuk frame gambar (Strip 1 & Strip 3).');
+    }
+
+    // Tampilkan modal progress
+    gifModal.classList.add('show');
+    gifProgressFill.style.width = '0%';
+    gifProgressLabel.textContent = '0%';
+    btnDownloadGIF.disabled = true;
+
+    const frameImg = new Image();
+    frameImg.src = theme.url;
+    await new Promise(r => { if (frameImg.complete) r(); else frameImg.onload = r; });
+
+    // Tentukan ukuran GIF — scale down agar file tidak terlalu besar
+    const maxGifW = 600;
+    const scale = Math.min(1, maxGifW / resultCanvas.width);
+    const gifW = Math.round(resultCanvas.width * scale);
+    const gifH = Math.round(resultCanvas.height * scale);
+
+    const gif = new GIF({
+      workers: 2,
+      quality: 8,
+      width: gifW,
+      height: gifH,
+      workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+    });
+
+    const totalPhotos = capturedPhotos.length;
+
+    for (let i = 0; i < totalPhotos; i++) {
+      const pct = Math.round((i / totalPhotos) * 80);
+      gifProgressFill.style.width = pct + '%';
+      gifProgressLabel.textContent = `Rendering foto ${i + 1} / ${totalPhotos}...`;
+
+      const frameCanvas = await renderFrameWithPhoto(frameImg, capturedPhotos[i], theme, i);
+
+      // Scale ke ukuran GIF
+      const scaled = document.createElement('canvas');
+      scaled.width = gifW; scaled.height = gifH;
+      const sCtx = scaled.getContext('2d');
+      sCtx.drawImage(frameCanvas, 0, 0, gifW, gifH);
+
+      // Durasi per frame: 1.2 detik untuk 3-strip, 2 detik untuk 1-strip
+      const delay = totalPhotos === 1 ? 2000 : 1200;
+      gif.addFrame(scaled, { delay, copy: true });
+    }
+
+    gifProgressFill.style.width = '85%';
+    gifProgressLabel.textContent = 'Encoding GIF...';
+
+    gif.on('progress', (p) => {
+      const pct = Math.round(85 + p * 15);
+      gifProgressFill.style.width = pct + '%';
+      gifProgressLabel.textContent = `Encoding: ${Math.round(p * 100)}%`;
+    });
+
+    gif.on('finished', (blob) => {
+      gifProgressFill.style.width = '100%';
+      gifProgressLabel.textContent = '✅ Selesai!';
+      setTimeout(() => {
+        gifModal.classList.remove('show');
+        btnDownloadGIF.disabled = false;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `photobooth_gif_${Date.now()}.gif`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, 600);
+    });
+
+    gif.render();
   });
 
   // Fitur QR Code (Menggunakan ImgBB gratis sebagai server penampung foto)
