@@ -292,16 +292,41 @@
   </div>
 </div>
 
-<!-- GIF Progress Modal -->
+<!-- GIF Progress Modal —— includes QR after done -->
 <div class="gif-modal" id="gifModal">
-  <div class="gif-modal-box">
-    <div class="gif-modal-icon">🎬</div>
-    <h3 style="font-size:22px; font-weight:800; color:#fff; margin-bottom:6px;">Membuat GIF Animasi</h3>
-    <p style="color:var(--text2); font-size:14px; margin-bottom:0;">Sabar ya, lagi nge-render frame satu per satu...</p>
-    <div class="gif-progress-bar">
-      <div class="gif-progress-fill" id="gifProgressFill"></div>
+  <div class="gif-modal-box" id="gifModalBox">
+    <!-- STEP 1: Rendering -->
+    <div id="gifStepRender">
+      <div class="gif-modal-icon">🎬</div>
+      <h3 style="font-size:22px; font-weight:800; color:#fff; margin-bottom:6px;">Membuat GIF Animasi</h3>
+      <p style="color:var(--text2); font-size:14px; margin-bottom:0;" id="gifStatusText">Mempersiapkan frame...</p>
+      <div class="gif-progress-bar">
+        <div class="gif-progress-fill" id="gifProgressFill"></div>
+      </div>
+      <div class="gif-progress-label" id="gifProgressLabel">0%</div>
     </div>
-    <div class="gif-progress-label" id="gifProgressLabel">0%</div>
+    <!-- STEP 2: QR Done -->
+    <div id="gifStepQR" style="display:none;">
+      <div style="font-size:40px; margin-bottom:10px;">✅</div>
+      <h3 style="font-size:20px; font-weight:800; color:#fff; margin-bottom:6px;">GIF Siap!</h3>
+      <p style="color:var(--text2); font-size:13px; margin-bottom:14px;">Scan QR code di bawah untuk download GIF di HP kamu</p>
+      <div id="gifQrCodeDiv" style="background:#fff; padding:14px; border-radius:12px; display:inline-block;"></div>
+      <p style="color:#aaa; font-size:11px; margin-top:10px;" id="gifQrHelp">Scan dengan kamera HP — Link berlaku 24 jam</p>
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button onclick="directDownloadGIF()" style="flex:1; padding:12px; background:linear-gradient(135deg,#f59e0b,#ef4444); border:none; border-radius:10px; color:#fff; font-weight:800; cursor:pointer; font-size:14px;">💾 Download Langsung</button>
+        <button onclick="closeGifModal()" style="flex:1; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; font-weight:700; cursor:pointer; font-size:14px;">Tutup</button>
+      </div>
+    </div>
+    <!-- STEP 3: QR Upload fail, download only -->
+    <div id="gifStepFail" style="display:none;">
+      <div style="font-size:40px; margin-bottom:10px;">⚠️</div>
+      <h3 style="font-size:18px; font-weight:800; color:#fff; margin-bottom:6px;">GIF Siap (Upload Gagal)</h3>
+      <p style="color:var(--text2); font-size:13px; margin-bottom:14px;">QR Code gagal dibuat, tapi GIF kamu bisa didownload langsung.</p>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button onclick="directDownloadGIF()" style="flex:1; padding:12px; background:linear-gradient(135deg,#f59e0b,#ef4444); border:none; border-radius:10px; color:#fff; font-weight:800; cursor:pointer; font-size:14px;">💾 Download GIF</button>
+        <button onclick="closeGifModal()" style="flex:1; padding:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; font-weight:700; cursor:pointer; font-size:14px;">Tutup</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -665,13 +690,27 @@
 
   // ============================================================
   // FITUR GIF ANIMASI
-  // Setiap foto dikompositkan ke dalam frame PNG yang sama,
-  // menghasilkan GIF animasi per foto (bukan slideshow statis).
   // ============================================================
   const btnDownloadGIF = document.getElementById('btnDownloadGIF');
   const gifModal = document.getElementById('gifModal');
   const gifProgressFill = document.getElementById('gifProgressFill');
   const gifProgressLabel = document.getElementById('gifProgressLabel');
+  const gifStatusText = document.getElementById('gifStatusText');
+  let currentGIFBlob = null;
+
+  function directDownloadGIF() {
+    if (!currentGIFBlob) return;
+    const url = URL.createObjectURL(currentGIFBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `photobooth_gif_${Date.now()}.gif`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  function closeGifModal() {
+    gifModal.classList.remove('show');
+    btnDownloadGIF.disabled = false;
+  }
 
   function renderFrameWithPhoto(frameImg, photoSrc, theme, boxIndex) {
     return new Promise((resolve) => {
@@ -716,25 +755,32 @@
       return alert('Fitur GIF hanya tersedia untuk frame gambar (Strip 1 & Strip 3).');
     }
 
-    // Tampilkan modal progress
+    // Reset modal state
     gifModal.classList.add('show');
+    document.getElementById('gifStepRender').style.display = 'block';
+    document.getElementById('gifStepQR').style.display = 'none';
+    document.getElementById('gifStepFail').style.display = 'none';
+    document.getElementById('gifQrCodeDiv').innerHTML = '';
     gifProgressFill.style.width = '0%';
     gifProgressLabel.textContent = '0%';
+    gifStatusText.textContent = 'Mempersiapkan frame...';
     btnDownloadGIF.disabled = true;
+    currentGIFBlob = null;
 
     const frameImg = new Image();
+    frameImg.crossOrigin = 'anonymous';
     frameImg.src = theme.url;
     await new Promise(r => { if (frameImg.complete) r(); else frameImg.onload = r; });
 
-    // Tentukan ukuran GIF — scale down agar file tidak terlalu besar
-    const maxGifW = 600;
+    // ▶ KUNCI KECEPATAN: Resolusi kecil + quality tinggi (angka besar = lebih cepat)
+    const maxGifW = 400;
     const scale = Math.min(1, maxGifW / resultCanvas.width);
     const gifW = Math.round(resultCanvas.width * scale);
     const gifH = Math.round(resultCanvas.height * scale);
 
     const gif = new GIF({
-      workers: 2,
-      quality: 8,
+      workers: 4,           // Lebih banyak worker = encode lebih cepat
+      quality: 15,          // 1=best/lambat, 30=cepat. 15 = sweet spot cepat & oke
       width: gifW,
       height: gifH,
       workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
@@ -743,45 +789,68 @@
     const totalPhotos = capturedPhotos.length;
 
     for (let i = 0; i < totalPhotos; i++) {
-      const pct = Math.round((i / totalPhotos) * 80);
+      const pct = Math.round((i / totalPhotos) * 70);
       gifProgressFill.style.width = pct + '%';
-      gifProgressLabel.textContent = `Rendering foto ${i + 1} / ${totalPhotos}...`;
+      gifStatusText.textContent = `Rendering foto ${i + 1} / ${totalPhotos}...`;
+      gifProgressLabel.textContent = pct + '%';
 
       const frameCanvas = await renderFrameWithPhoto(frameImg, capturedPhotos[i], theme, i);
 
-      // Scale ke ukuran GIF
       const scaled = document.createElement('canvas');
       scaled.width = gifW; scaled.height = gifH;
-      const sCtx = scaled.getContext('2d');
-      sCtx.drawImage(frameCanvas, 0, 0, gifW, gifH);
+      scaled.getContext('2d').drawImage(frameCanvas, 0, 0, gifW, gifH);
 
-      // Durasi per frame: 1.2 detik untuk 3-strip, 2 detik untuk 1-strip
-      const delay = totalPhotos === 1 ? 2000 : 1200;
+      const delay = totalPhotos === 1 ? 2500 : 1400;
       gif.addFrame(scaled, { delay, copy: true });
     }
 
-    gifProgressFill.style.width = '85%';
-    gifProgressLabel.textContent = 'Encoding GIF...';
+    gifProgressFill.style.width = '75%';
+    gifStatusText.textContent = 'Encoding GIF... ⚡';
+    gifProgressLabel.textContent = '75%';
 
     gif.on('progress', (p) => {
-      const pct = Math.round(85 + p * 15);
+      const pct = Math.round(75 + p * 20);
       gifProgressFill.style.width = pct + '%';
-      gifProgressLabel.textContent = `Encoding: ${Math.round(p * 100)}%`;
+      gifProgressLabel.textContent = pct + '%';
     });
 
-    gif.on('finished', (blob) => {
+    gif.on('finished', async (blob) => {
+      currentGIFBlob = blob;
       gifProgressFill.style.width = '100%';
-      gifProgressLabel.textContent = '✅ Selesai!';
-      setTimeout(() => {
-        gifModal.classList.remove('show');
+      gifProgressLabel.textContent = '100%';
+      gifStatusText.textContent = 'Mengunggah untuk QR Code...';
+
+      // ▶ Upload GIF blob ke ImgBB
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target.result.split(',')[1];
+          const formData = new FormData();
+          formData.append('image', base64);
+          const resp = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: 'POST', body: formData
+          });
+          const data = await resp.json();
+          if (data.success) {
+            const gifUrl = data.data.url.replace('i.ibb.co', 'i.ibb.co.com');
+            document.getElementById('gifStepRender').style.display = 'none';
+            document.getElementById('gifStepQR').style.display = 'block';
+            btnDownloadGIF.disabled = false;
+            new QRCode(document.getElementById('gifQrCodeDiv'), {
+              text: gifUrl,
+              width: 180, height: 180,
+              colorDark: '#000', colorLight: '#fff',
+              correctLevel: QRCode.CorrectLevel.H
+            });
+          } else { throw new Error('Upload failed'); }
+        };
+        reader.readAsDataURL(blob);
+      } catch (err) {
+        console.error('GIF upload error:', err);
+        document.getElementById('gifStepRender').style.display = 'none';
+        document.getElementById('gifStepFail').style.display = 'block';
         btnDownloadGIF.disabled = false;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `photobooth_gif_${Date.now()}.gif`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }, 600);
+      }
     });
 
     gif.render();
